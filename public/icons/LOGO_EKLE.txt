@@ -1,0 +1,27 @@
+📋 LOGO DOSYALARINI BURAYA EKLEYİN
+=====================================
+
+Gönderdiğiniz mavi "DynSteel" logosunu şu isimlerle bu klasöre kaydedin:
+
+1. icon.svg         - Müşteri sitesi için (SVG formatında)
+2. admin-icon.svg   - Admin paneli için (aynı logo olabilir)
+3. icon-192.png     - 192x192 px PNG
+4. icon-512.png     - 512x512 px PNG
+
+ADIMLAR:
+--------
+1. Logonuzu PNG formatında kaydedin
+2. https://www.iloveimg.com/resize-image sitesine gidin
+3. Logoyu yükleyin ve şu boyutları oluşturun:
+   - 192x192 px → icon-192.png olarak kaydedin
+   - 512x512 px → icon-512.png olarak kaydedin
+
+4. Dosyaları bu klasöre (public/icons/) kopyalayın
+
+5. Ayrıca şunları da yapın:
+   - 180x180 px → public/apple-touch-icon.png olarak kaydedin
+   - 32x32 px → public/favicon.ico olarak kaydedin
+
+HAZIR! ✅
+Sunucuyu yeniden başlatın: npm run dev
+

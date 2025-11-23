@@ -1,0 +1,64 @@
+{
+  "name": "DynSteel - Minyatür Araba Mağazası",
+  "short_name": "DynSteel",
+  "description": "Premium minyatür araba koleksiyonları ve özel 3D üretim hizmetleri",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#dc2626",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["shopping", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Ürünler",
+      "short_name": "Ürünler",
+      "description": "Minyatür araba koleksiyonları",
+      "url": "/products",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Kategoriler",
+      "short_name": "Kategoriler",
+      "description": "Ürün kategorileri",
+      "url": "/categories",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "3D Tarama",
+      "short_name": "3D",
+      "description": "Özel 3D üretim hizmeti",
+      "url": "/3d-scan",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Sepet",
+      "short_name": "Sepet",
+      "description": "Alışveriş sepetim",
+      "url": "/cart",
+      "icons": [{ "src": "/icons/icon.svg", "sizes": "any" }]
+    }
+  ],
+  "prefer_related_applications": false
+}
+

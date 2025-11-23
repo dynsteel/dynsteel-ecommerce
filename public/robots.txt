@@ -1,0 +1,54 @@
+# robots.txt for DynSteel E-commerce
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin-manifest.json
+Disallow: /api/
+Disallow: /checkout/
+Disallow: /cart/
+Disallow: /account/
+
+# Sitemap
+Sitemap: https://yourdomain.com/sitemap.xml
+
+# Crawl delay (optional, 1 second)
+Crawl-delay: 1
+
+# Popular search engines
+User-agent: Googlebot
+Allow: /
+Disallow: /admin/
+
+User-agent: Bingbot
+Allow: /
+Disallow: /admin/
+
+User-agent: Slurp
+Allow: /
+Disallow: /admin/
+
+User-agent: DuckDuckBot
+Allow: /
+Disallow: /admin/
+
+User-agent: Baiduspider
+Allow: /
+Disallow: /admin/
+
+User-agent: YandexBot
+Allow: /
+Disallow: /admin/
+
+# Block bad bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
