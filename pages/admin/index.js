@@ -13,11 +13,10 @@ import {
   Eye,
   Calendar
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function AdminDashboard() {
-  // Gerçek veriler - MongoDB'den gelecek
-  const [stats] = useState({
+  const [stats, setStats] = useState({
     totalRevenue: 0,
     totalOrders: 0,
     totalProducts: 0,
@@ -28,13 +27,37 @@ export default function AdminDashboard() {
     customersChange: 0
   })
 
-  const [recentOrders] = useState([
-    // Henüz sipariş yok - Gerçek siparişler MongoDB'den gelecek
-  ])
+  const [recentOrders, setRecentOrders] = useState([])
+  const [topProducts, setTopProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const [topProducts] = useState([
-    // Henüz ürün yok - Gerçek ürünler MongoDB'den gelecek
-  ])
+  // Fetch dashboard stats from API
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/admin/dashboard')
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Dashboard verileri yüklenemedi')
+        }
+
+        setStats(data.stats || stats)
+        setRecentOrders(data.recentOrders || [])
+        setTopProducts(data.topProducts || [])
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err)
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardStats()
+  }, [])
 
   const StatCard = ({ title, value, change, icon: Icon, trend }) => (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
@@ -80,6 +103,28 @@ export default function AdminDashboard() {
         <h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
         <p className="text-gray-600">DynSteel E-Commerce genel bakış ve istatistikler</p>
       </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Yükleniyor...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+          <div className="flex items-center">
+            <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+            <p className="text-red-800">{error}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      {!loading && !error && (
+        <>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8">
@@ -259,6 +304,8 @@ export default function AdminDashboard() {
           </a>
         </div>
       </div>
+        </>
+      )}
     </AdminLayout>
   )
 }

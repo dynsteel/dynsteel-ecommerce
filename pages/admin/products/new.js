@@ -1,6 +1,7 @@
 import AdminLayout from '../../../components/AdminLayout'
 import Link from 'next/link'
 import { useState } from 'react'
+import { useRouter } from 'next/router'
 import {
   ArrowLeft,
   Save,
@@ -17,6 +18,8 @@ import {
 } from 'lucide-react'
 
 export default function NewProduct() {
+  const router = useRouter()
+  const [saving, setSaving] = useState(false)
   const [product, setProduct] = useState({
     name: '',
     description: '',
@@ -146,27 +149,57 @@ export default function NewProduct() {
       category: product.brand.toLowerCase() // Brand'i category olarak kullan
     }
     
-    // Mevcut ürünleri al
-    if (typeof window !== 'undefined') {
-      const existingProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
-      
-      // Yeni ürünü ekle
-      existingProducts.push(newProduct)
-      
-      // localStorage'a kaydet
-      localStorage.setItem('adminProducts', JSON.stringify(existingProducts))
-      
-      console.log('Yeni ürün:', newProduct)
+    // Save to MongoDB via API
+    try {
+      setSaving(true)
+      const response = await fetch('/api/admin/products', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          category: product.brand.toLowerCase(),
+          image: product.images && product.images.length > 0 ? product.images[0] : '🚗',
+          stock: product.stock
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ürün eklenemedi')
+      }
+
       alert('Ürün başarıyla eklendi!')
-      
-      // Formu temizle
-      setProduct({
-        name: '',
-        description: '',
-        category: '',
-        brand: '',
-        price: '',
-        originalPrice: '',
+      router.push('/admin/products')
+    } catch (error) {
+      console.error('Error saving product:', error)
+      alert(error.message || 'Ürün eklenirken bir hata oluştu')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleInputChange = (field, value) => {
+    setProduct(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  // Remove old handleSave function - replaced above
+  const oldHandleSave = () => {
+    // Formu temizle
+    setProduct({
+      name: '',
+      description: '',
+      category: '',
+      brand: '',
+      price: '',
+      originalPrice: '',
         stock: '',
         scale: '',
         sku: '',

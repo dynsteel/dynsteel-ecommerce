@@ -1,6 +1,6 @@
 import AdminLayout from '../../../components/AdminLayout'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Search,
   Filter,
@@ -28,6 +28,52 @@ export default function OrdersManagement() {
 
   // Sipariş verileri
   const [orders, setOrders] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Fetch orders from API
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/admin/orders')
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Siparişler yüklenemedi')
+        }
+
+        // Format orders for display
+        const formattedOrders = (data.orders || []).map(order => ({
+          id: order.id,
+          orderNumber: order.orderNumber || order.id,
+          customer: {
+            name: order.customerName || 'Bilinmeyen Müşteri',
+            email: order.customerEmail || '',
+            phone: order.customerPhone || ''
+          },
+          items: order.items || [],
+          total: order.total || 0,
+          status: order.status || 'pending',
+          paymentStatus: order.paymentStatus || 'pending',
+          shippingAddress: order.shippingAddress || {},
+          createdAt: order.createdAt || new Date(),
+          shippingDate: order.shippingDate
+        }))
+
+        setOrders(formattedOrders)
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching orders:', err)
+        setError(err.message)
+        setOrders([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchOrders()
+  }, [])
 
   const statusOptions = [
     { value: 'all', label: 'Tüm Siparişler', color: 'gray' },
@@ -80,12 +126,35 @@ export default function OrdersManagement() {
     return matchesSearch && matchesStatus
   })
 
-  const updateOrderStatus = (orderId, newStatus) => {
-    setOrders(orders.map(order => 
-      order.id === orderId 
-        ? { ...order, status: newStatus, shippingDate: newStatus === 'shipped' ? new Date().toISOString() : order.shippingDate }
-        : order
-    ))
+  const updateOrderStatus = async (orderId, newStatus) => {
+    try {
+      const response = await fetch('/api/admin/orders', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: orderId,
+          status: newStatus
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Sipariş durumu güncellenemedi')
+      }
+
+      // Update local state
+      setOrders(orders.map(order => 
+        order.id === orderId 
+          ? { ...order, status: newStatus, shippingDate: newStatus === 'shipped' ? new Date().toISOString() : order.shippingDate }
+          : order
+      ))
+    } catch (err) {
+      console.error('Error updating order status:', err)
+      alert(err.message || 'Sipariş durumu güncellenirken bir hata oluştu')
+    }
   }
 
   const viewOrderDetails = (order) => {
@@ -181,8 +250,27 @@ export default function OrdersManagement() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Siparişler yükleniyor...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+              <p className="text-red-800">{error}</p>
+            </div>
+          </div>
+        )}
+
         {/* Orders Table */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        {!loading && !error && (
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -296,6 +384,8 @@ export default function OrdersManagement() {
             <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Sipariş bulunamadı</h3>
             <p className="text-gray-600">Arama kriterlerinize uygun sipariş bulunamadı.</p>
+          </div>
+        )}
           </div>
         )}
       </div>

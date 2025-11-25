@@ -57,52 +57,45 @@ export default function EditProduct() {
   ]
 
   useEffect(() => {
-    if (id && typeof window !== 'undefined') {
-      // localStorage'dan ürünü yükle
-      const adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
-      const foundProduct = adminProducts.find(p => p.id === parseInt(id))
+    // Fetch product from API
+    const fetchProduct = async () => {
+      if (!id) return
       
-      if (foundProduct) {
-        setProduct({
-          id: foundProduct.id,
-          name: foundProduct.name || '',
-          category: foundProduct.category || foundProduct.brand || '',
-          brand: foundProduct.brand || '',
-          price: foundProduct.price?.toString() || '',
-          originalPrice: foundProduct.originalPrice?.toString() || '',
-          stock: foundProduct.stock?.toString() || '0',
-          scale: foundProduct.scale || '',
-          description: foundProduct.description || '',
-          features: foundProduct.features || [],
-          status: foundProduct.status || 'active',
-          image: foundProduct.image || '🚗',
-          images: foundProduct.images || (foundProduct.image ? [foundProduct.image] : [])
-        })
-      } else {
-        // Demo ürün verisi
-        const demoProduct = {
-          id: parseInt(id),
-          name: 'Ferrari F40 Minyatür Araba',
-          category: 'Ferrari',
-          brand: 'Ferrari',
-          price: '899',
-          originalPrice: '1199',
-          stock: '15',
-          scale: '1:18',
-          description: 'Ferrari F40, 1987-1992 yılları arasında üretilen efsanevi süper spor arabadır. Bu minyatür model, orijinal F40\'ın her detayını kusursuz şekilde yansıtmaktadır.',
-          features: [
-            'Die-cast metal gövde',
-            'Açılabilen kapılar',
-            'Detaylı iç mekan',
-            'Gerçek kauçuk lastikler'
-          ],
-          status: 'active',
-          image: '🏎️'
+      try {
+        setLoading(true)
+        const response = await fetch(`/api/admin/products?id=${id}`)
+        const data = await response.json()
+
+        if (response.ok && data.product) {
+          setProduct({
+            id: data.product.id,
+            name: data.product.name || '',
+            category: data.product.category || '',
+            brand: data.product.category || '',
+            price: data.product.price?.toString() || '',
+            originalPrice: data.product.originalPrice?.toString() || '',
+            stock: data.product.stock?.toString() || '0',
+            scale: data.product.scale || '',
+            description: data.product.description || '',
+            features: data.product.features || [''],
+            status: data.product.status || 'active',
+            image: data.product.image || '🚗',
+            images: data.product.images || (data.product.image ? [data.product.image] : []),
+            weight: data.product.weight || '',
+            dimensions: data.product.dimensions || { length: '', width: '', height: '' },
+            seoTitle: data.product.seoTitle || '',
+            seoDescription: data.product.seoDescription || '',
+            tags: data.product.tags || ['']
+          })
         }
-        setProduct(demoProduct)
+      } catch (error) {
+        console.error('Error fetching product:', error)
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
+
+    fetchProduct()
   }, [id])
 
   const handleInputChange = (field, value) => {
@@ -213,38 +206,37 @@ export default function EditProduct() {
     
     setSaving(true)
     
-    // localStorage'a kaydet
-    if (typeof window !== 'undefined') {
-      const adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
-      const productIndex = adminProducts.findIndex(p => p.id === product.id)
-      
-      const updatedProduct = {
-        ...product,
-        price: parseFloat(product.price),
-        originalPrice: product.originalPrice ? parseFloat(product.originalPrice) : null,
-        stock: parseInt(product.stock),
-        rating: product.rating || 4.5,
-        reviews: product.reviews || 0,
-        inStock: parseInt(product.stock) > 0,
-        image: product.images && product.images.length > 0 ? product.images[0] : product.image,
-        images: product.images || []
+    try {
+      const response = await fetch('/api/admin/products', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          id: router.query.id,
+          name: product.name,
+          description: product.description,
+          price: product.price,
+          category: product.brand.toLowerCase(),
+          image: product.images && product.images.length > 0 ? product.images[0] : product.image,
+          stock: product.stock,
+          status: product.status
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Ürün güncellenemedi')
       }
-      
-      if (productIndex !== -1) {
-        // Mevcut ürünü güncelle
-        adminProducts[productIndex] = updatedProduct
-      } else {
-        // Yeni ürün ekle (bulunamazsa)
-        adminProducts.push(updatedProduct)
-      }
-      
-      localStorage.setItem('adminProducts', JSON.stringify(adminProducts))
-      
-      setTimeout(() => {
-        setSaving(false)
-        alert('Ürün başarıyla güncellendi!')
-        router.push('/admin/products')
-      }, 500)
+
+      alert('Ürün başarıyla güncellendi!')
+      router.push('/admin/products')
+    } catch (error) {
+      console.error('Error updating product:', error)
+      alert(error.message || 'Ürün güncellenirken bir hata oluştu')
+    } finally {
+      setSaving(false)
     }
   }
 

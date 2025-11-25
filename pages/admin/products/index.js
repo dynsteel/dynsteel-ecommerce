@@ -22,29 +22,35 @@ export default function ProductsManagement() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
   const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const categories = ['all', 'Ferrari', 'BMW', 'Mercedes', 'Porsche', 'Audi', 'Volkswagen', 'Toyota', 'Honda']
 
-  // localStorage'dan ürünleri yükle
+  // Fetch products from API
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
-      
-      // Admin ürünlerini formatlayalım
-      const formattedAdminProducts = adminProducts.map(product => ({
-        id: product.id,
-        name: product.name,
-        category: product.brand || product.category,
-        price: product.price,
-        stock: product.stock || 0,
-        status: product.status || (product.stock > 0 ? 'active' : 'out_of_stock'),
-        image: product.image || '🚗',
-        sales: 0,
-        createdAt: new Date(product.id).toISOString().split('T')[0]
-      }))
-      
-      setProducts(formattedAdminProducts)
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/admin/products')
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Ürünler yüklenemedi')
+        }
+
+        setProducts(data.products || [])
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching products:', err)
+        setError(err.message)
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
     }
+
+    fetchProducts()
   }, [])
 
   // Dropdown dışına tıklayınca kapat
@@ -67,17 +73,24 @@ export default function ProductsManagement() {
     return matchesSearch && matchesCategory
   })
 
-  const handleDeleteProduct = (id) => {
+  const handleDeleteProduct = async (id) => {
     if (window.confirm('Bu ürünü silmek istediğinizden emin misiniz?')) {
-      // State'den sil
-      const updatedProducts = products.filter(product => product.id !== id)
-      setProducts(updatedProducts)
-      
-      // localStorage'dan da sil (sadece admin ürünleri)
-      if (typeof window !== 'undefined') {
-        const adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
-        const updatedAdminProducts = adminProducts.filter(product => product.id !== id)
-        localStorage.setItem('adminProducts', JSON.stringify(updatedAdminProducts))
+      try {
+        const response = await fetch(`/api/admin/products?id=${id}`, {
+          method: 'DELETE'
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Ürün silinemedi')
+        }
+
+        // Update local state
+        setProducts(products.filter(product => product.id !== id))
+      } catch (err) {
+        console.error('Error deleting product:', err)
+        alert(err.message || 'Ürün silinirken bir hata oluştu')
       }
     }
   }
@@ -220,8 +233,27 @@ export default function ProductsManagement() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Ürünler yükleniyor...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+              <p className="text-red-800">{error}</p>
+            </div>
+          </div>
+        )}
+
         {/* Products Table */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        {!loading && !error && (
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
@@ -308,6 +340,8 @@ export default function ProductsManagement() {
             <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Ürün bulunamadı</h3>
             <p className="text-gray-600">Arama kriterlerinize uygun ürün bulunamadı.</p>
+          </div>
+        )}
           </div>
         )}
       </div>

@@ -65,20 +65,34 @@ export default function LoginPage() {
     
     setIsLoading(true)
     
-    // Simulated login
-    setTimeout(() => {
-      // Demo kullanıcı bilgileri
-      const userData = {
-        name: formData.email.split('@')[0],
-        email: formData.email
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Giriş başarısız')
       }
-      
+
+      // Store user data in localStorage for session
       localStorage.setItem('userLoggedIn', 'true')
-      localStorage.setItem('userData', JSON.stringify(userData))
+      localStorage.setItem('userData', JSON.stringify(data.user))
       
       setIsLoading(false)
       router.push('/profile')
-    }, 1500)
+    } catch (error) {
+      setIsLoading(false)
+      setErrors({ submit: error.message || 'Giriş sırasında bir hata oluştu' })
+    }
   }
 
   return (
@@ -163,6 +177,13 @@ export default function LoginPage() {
                   </span>
                 </Link>
               </div>
+
+              {/* Submit Error */}
+              {errors.submit && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
+                  {errors.submit}
+                </div>
+              )}
 
               {/* Submit Button */}
               <button
