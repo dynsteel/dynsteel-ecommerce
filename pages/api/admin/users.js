@@ -42,6 +42,25 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     console.error('Get users error:', error)
-    res.status(500).json({ error: error.message || 'Internal server error' })
+    
+    // More specific error messages
+    if (error.message && error.message.includes('SSL')) {
+      return res.status(500).json({ 
+        error: 'MongoDB SSL connection error. Please check your connection string and network settings.',
+        details: error.message 
+      })
+    }
+    
+    if (error.message && error.message.includes('authentication')) {
+      return res.status(500).json({ 
+        error: 'MongoDB authentication failed. Please check your credentials.',
+        details: error.message 
+      })
+    }
+    
+    res.status(500).json({ 
+      error: error.message || 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    })
   }
 }
