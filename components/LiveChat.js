@@ -44,24 +44,86 @@ export default function LiveChat() {
     }
   ]
 
-  // Otomatik yanıtlar
-  const autoResponses = {
-    'merhaba': 'Merhaba! Size nasıl yardımcı olabilirim?',
-    'ürün': 'Ürünlerimiz hakkında bilgi almak için ürünler sayfasını ziyaret edebilir veya bana hangi modeli aradığınızı söyleyebilirsiniz.',
-    '3d tarama': '3D tarama hizmetimiz ile bulamadığınız parçaları özel olarak üretiyoruz. Detaylı bilgi için 3D Tarama sayfamızı ziyaret edebilirsiniz.',
-    'fiyat': 'Ürün fiyatlarımız kalite ve detay seviyesine göre değişmektedir. Hangi ürün hakkında bilgi almak istiyorsunuz?',
-    'kargo': 'Kargo süremiz 1-3 iş günüdür. Ücretsiz kargo 500₺ ve üzeri siparişlerde geçerlidir.',
-    'iade': 'İade politikamız gereği 14 gün içinde ürünleri iade edebilirsiniz. Detaylar için İade & Değişim sayfasını inceleyebilirsiniz.',
-    'iletişim': 'Bize 7/24 WhatsApp üzerinden ulaşabilirsiniz: +90 545 846 35 23'
+  // Gelişmiş AI Yanıt Sistemi
+  const getAIResponse = (message) => {
+    const lowerMessage = message.toLowerCase().trim()
+    
+    // Karşılama
+    if (lowerMessage.match(/^(merhaba|selam|iyi günler|günaydın|iyi akşamlar|hey|hi|hello)/)) {
+      return "Merhaba! 👋 DynSteel'e hoş geldiniz! Size nasıl yardımcı olabilirim? Minyatür araba modelleri, 3D tarama hizmetleri, sipariş durumu veya diğer sorularınız için buradayım."
+    }
+    
+    // Ürün soruları
+    if (lowerMessage.match(/(ürün|model|araba|ferrari|bmw|mercedes|porsche|audi|lamborghini|koleksiyon|minyatür)/)) {
+      return "Ürünlerimiz hakkında bilgi almak için ürünler sayfamızı ziyaret edebilirsiniz. Ferrari, BMW, Mercedes, Porsche ve daha birçok markanın detaylı minyatür modellerini bulabilirsiniz. Hangi modeli aradığınızı söylerseniz size daha detaylı bilgi verebilirim."
+    }
+    
+    // 3D Tarama
+    if (lowerMessage.match(/(3d|tarama|özel|parça|bulamadım|bulamıyorum|yok|üret|üretim)/)) {
+      return "3D tarama hizmetimiz ile bulamadığınız parçaları özel olarak üretiyoruz! 🎨 Eksik parçalarınızı bize gönderebilir, size özel üretim yapabiliriz. Detaylı bilgi ve fiyat teklifi için WhatsApp üzerinden (+90 545 846 35 23) veya e-posta (info@dynsteel.com) ile iletişime geçebilirsiniz."
+    }
+    
+    // Fiyat soruları
+    if (lowerMessage.match(/(fiyat|ücret|ne kadar|kaç para|tutar|maliyet|bedel)/)) {
+      return "Ürün fiyatlarımız kalite, detay seviyesi ve ölçeğe göre değişmektedir. 💰 Genel olarak 100₺ ile 2000₺ arasında değişen fiyatlarımız var. Belirli bir ürün hakkında fiyat bilgisi almak isterseniz, ürünler sayfasından ilgili ürüne tıklayarak detaylı bilgiye ulaşabilirsiniz."
+    }
+    
+    // Kargo soruları
+    if (lowerMessage.match(/(kargo|gönderi|teslimat|ne zaman|süre|ulaşır|gelir|gönder|sevkiyat)/)) {
+      return "Kargo bilgileri: 📦\n• Kargo süremiz: 1-3 iş günü\n• Ücretsiz kargo: 500₺ ve üzeri siparişlerde\n• Kargo ücreti: 25₺ (500₺ altı siparişlerde)\n• Kargo firmaları: PTT, Yurtiçi Kargo\nSiparişiniz hazırlandıktan sonra kargo takip numaranızı e-posta ile gönderiyoruz."
+    }
+    
+    // İade/Değişim
+    if (lowerMessage.match(/(iade|değişim|değiştir|geri gönder|iptal|vazgeç)/)) {
+      return "İade & Değişim Politikamız: 🔄\n• İade süresi: 14 gün\n• Ürün orijinal ambalajında ve hasarsız olmalı\n• İade kargo ücreti müşteriye aittir\n• Değişim talepleri için önce bizimle iletişime geçin\nDetaylı bilgi için İade & Değişim sayfamızı inceleyebilirsiniz."
+    }
+    
+    // İletişim
+    if (lowerMessage.match(/(iletişim|ulaş|telefon|numara|adres|email|e-posta|whatsapp|konuş|görüş)/)) {
+      return "İletişim Bilgilerimiz: 📞\n• WhatsApp: +90 545 846 35 23 (7/24)\n• E-posta: info@dynsteel.com\n• Adres: İstanbul, Türkiye\n• Çalışma Saatleri: Pazartesi-Cumartesi 09:00-18:00\nEn hızlı yanıt için WhatsApp üzerinden yazabilirsiniz!"
+    }
+    
+    // Sipariş durumu
+    if (lowerMessage.match(/(sipariş|siparişim|durum|nerede|takip|numara|kargo durumu)/)) {
+      return "Sipariş durumunuzu öğrenmek için sipariş numaranızı paylaşabilir misiniz? 📋 Sipariş numaranızı bilmiyorsanız, kayıtlı e-posta adresinizle giriş yaparak profil sayfanızdan tüm siparişlerinizi görebilirsiniz."
+    }
+    
+    // Ödeme
+    if (lowerMessage.match(/(ödeme|para|kredi kartı|banka|havale|eft|taksit)/)) {
+      return "Ödeme Seçeneklerimiz: 💳\n• Kredi Kartı (Tüm kartlar)\n• Banka Havalesi/EFT\n• Kapıda Ödeme (Kargo ile)\n• Taksit seçenekleri kredi kartı ile mevcuttur\nGüvenli ödeme altyapımız sayesinde tüm işlemleriniz korunmaktadır."
+    }
+    
+    // Stok
+    if (lowerMessage.match(/(stok|var mı|mevcut|bulunuyor|satışta)/)) {
+      return "Stok durumunu öğrenmek için hangi ürünü sorduğunuzu belirtir misiniz? 📦 Ürünler sayfasında stok durumu gösterilmektedir. Stokta olmayan ürünler için özel üretim yapabiliriz, bu durumda 3D tarama hizmetimizden yararlanabilirsiniz."
+    }
+    
+    // Genel yardım
+    if (lowerMessage.match(/(yardım|bilgi|nasıl|ne|hakkında|detay|açıkla|anlamadım)/)) {
+      return "Size nasıl yardımcı olabilirim? 🤔\n• Ürün bilgileri\n• 3D tarama hizmetleri\n• Sipariş durumu\n• Kargo bilgileri\n• İade & değişim\n• İletişim bilgileri\n\nHangi konuda bilgi almak istiyorsunuz?"
+    }
+    
+    // Teşekkür
+    if (lowerMessage.match(/(teşekkür|sağol|sağ ol|eyvallah|çok teşekkür|thanks|thank you)/)) {
+      return "Rica ederim! 😊 Başka bir konuda yardımcı olabileceğim bir şey var mı? Her zaman buradayım!"
+    }
+    
+    // Veda
+    if (lowerMessage.match(/(görüşürüz|hoşça kal|bye|güle güle|bay bay|bye bye)/)) {
+      return "Görüşmek üzere! 👋 Başka sorularınız olursa her zaman buradayım. İyi günler!"
+    }
+    
+    // Varsayılan yanıt - daha akıllı
+    return "Anladım! Bu konuda size yardımcı olmak için birkaç seçenek var:\n\n1️⃣ Ürünler hakkında bilgi almak için 'Ürün bilgisi' butonuna tıklayın\n2️⃣ 3D tarama hizmeti için '3D Tarama' butonuna tıklayın\n3️⃣ Sipariş durumu için sipariş numaranızı paylaşın\n4️⃣ Daha detaylı yardım için WhatsApp: +90 545 846 35 23\n\nBaşka bir sorunuz var mı?"
   }
 
   useEffect(() => {
     if (isOpen && !chatStarted) {
-      // İlk açılışta hoş geldin mesajlarını göster
+      // İlk açılışta hoş geldin mesajlarını göster ve chat'i başlat
       setTimeout(() => {
         setMessages(welcomeMessages)
         setChatStarted(true)
-      }, 500)
+      }, 300)
     }
   }, [isOpen, chatStarted])
 
@@ -90,9 +152,10 @@ export default function LiveChat() {
     e.preventDefault()
     if (!inputMessage.trim()) return
 
+    const messageText = inputMessage.trim()
     const userMessage = {
       id: Date.now(),
-      text: inputMessage,
+      text: messageText,
       sender: 'user',
       timestamp: new Date()
     }
@@ -101,18 +164,9 @@ export default function LiveChat() {
     setInputMessage('')
     setIsTyping(true)
 
-    // Otomatik yanıt simülasyonu
+    // AI yanıt sistemi
     setTimeout(() => {
-      const messageText = inputMessage.toLowerCase()
-      let botResponse = "Anladım. Bu konuda size yardımcı olmak için müşteri temsilcimizi yönlendiriyorum. Kısa süre içinde size dönüş yapacağız."
-
-      // Otomatik yanıt kontrolü
-      for (const [keyword, response] of Object.entries(autoResponses)) {
-        if (messageText.includes(keyword)) {
-          botResponse = response
-          break
-        }
-      }
+      const botResponse = getAIResponse(messageText)
 
       const botMessage = {
         id: Date.now() + 1,
@@ -123,7 +177,7 @@ export default function LiveChat() {
 
       setMessages(prev => [...prev, botMessage])
       setIsTyping(false)
-    }, 1000 + Math.random() * 2000) // 1-3 saniye arası gecikme
+    }, 800 + Math.random() * 1200) // 0.8-2 saniye arası gecikme (daha hızlı)
   }
 
   const handleStartChat = (e) => {
@@ -157,18 +211,9 @@ export default function LiveChat() {
     setMessages(prev => [...prev, userMessage])
     setIsTyping(true)
 
-    // Otomatik yanıt simülasyonu
+    // AI yanıt sistemi
     setTimeout(() => {
-      const messageTextLower = messageText.toLowerCase()
-      let botResponse = "Anladım. Bu konuda size yardımcı olmak için müşteri temsilcimizi yönlendiriyorum. Kısa süre içinde size dönüş yapacağız."
-
-      // Otomatik yanıt kontrolü
-      for (const [keyword, response] of Object.entries(autoResponses)) {
-        if (messageTextLower.includes(keyword)) {
-          botResponse = response
-          break
-        }
-      }
+      const botResponse = getAIResponse(messageText)
 
       const botMessage = {
         id: Date.now() + 1,
@@ -179,7 +224,7 @@ export default function LiveChat() {
 
       setMessages(prev => [...prev, botMessage])
       setIsTyping(false)
-    }, 1000 + Math.random() * 2000) // 1-3 saniye arası gecikme
+    }, 800 + Math.random() * 1200) // 0.8-2 saniye arası gecikme
   }
 
   const quickActions = [
@@ -243,88 +288,13 @@ export default function LiveChat() {
           {!isMinimized && (
             <>
               {!chatStarted ? (
-                /* Customer Info Form */
-                <div className="p-4 h-80 overflow-y-auto">
-                  <div className="text-center mb-4">
-                    <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                      <MessageCircle className="h-8 w-8 text-blue-600" />
+                /* Loading state - will auto-start */
+                <div className="p-4 h-80 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3 animate-pulse">
+                      <Bot className="h-6 w-6 text-blue-600" />
                     </div>
-                    <h4 className="font-semibold text-gray-900 mb-2">Canlı Destek</h4>
-                    <p className="text-sm text-gray-600">
-                      Size daha iyi yardımcı olabilmek için kısa bilgilerinizi alabilir miyiz?
-                    </p>
-                  </div>
-
-                  <form onSubmit={handleStartChat} className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Adınız *
-                      </label>
-                      <input
-                        type="text"
-                        value={customerInfo.name}
-                        onChange={(e) => setCustomerInfo({...customerInfo, name: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        placeholder="Adınızı girin"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        E-posta *
-                      </label>
-                      <input
-                        type="email"
-                        value={customerInfo.email}
-                        onChange={(e) => setCustomerInfo({...customerInfo, email: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        placeholder="ornek@email.com"
-                        required
-                      />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Telefon
-                      </label>
-                      <input
-                        type="tel"
-                        value={customerInfo.phone}
-                        onChange={(e) => setCustomerInfo({...customerInfo, phone: e.target.value})}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
-                        placeholder="0500 000 00 00"
-                      />
-                    </div>
-                    
-                    <button
-                      type="submit"
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg font-medium transition-colors"
-                    >
-                      Sohbeti Başlat
-                    </button>
-                  </form>
-
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="text-xs text-gray-500 text-center mb-2">Alternatif iletişim:</p>
-                    <div className="flex justify-center space-x-4">
-                      <a
-                        href="https://wa.me/905458463523"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center space-x-1 text-green-600 hover:text-green-700 text-xs"
-                      >
-                        <Phone className="h-3 w-3" />
-                        <span>WhatsApp</span>
-                      </a>
-                      <a
-                        href="mailto:info@dynsteel.com"
-                        className="flex items-center space-x-1 text-blue-600 hover:text-blue-700 text-xs"
-                      >
-                        <Mail className="h-3 w-3" />
-                        <span>E-posta</span>
-                      </a>
-                    </div>
+                    <p className="text-sm text-gray-600">Yapay zeka destek sistemine bağlanılıyor...</p>
                   </div>
                 </div>
               ) : (
