@@ -1,6 +1,5 @@
-// API Route: User Registration
-import { getCollection } from '../../../lib/db'
-import { generateToken, hashPassword } from '../../../lib/auth'
+import clientPromise from '../../../../lib/mongodb'
+import bcrypt from 'bcryptjs'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -8,75 +7,75 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { name, email, password, phone } = req.body
+    const { name, email, phone, password } = req.body
 
-    // Input validation
+    // Validation
     if (!name || !email || !password) {
-      return res.status(400).json({ error: 'Ad, email ve şifre gereklidir' })
+      return res.status(400).json({ error: 'Name, email, and password are required' })
     }
 
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: 'Geçerli bir email adresi giriniz' })
-    }
-
-    // Password strength validation
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Şifre en az 6 karakter olmalıdır' })
+      return res.status(400).json({ error: 'Password must be at least 6 characters' })
     }
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      return res.status(400).json({ error: 'Invalid email format' })
+    }
+
+    const client = await clientPromise
+    const db = client.db('dynsteel')
+    const usersCollection = db.collection('users')
 
     // Check if user already exists
-    const usersCollection = await getCollection('users')
-    const existingUser = await usersCollection.findOne({ email })
-
+    const existingUser = await usersCollection.findOne({ email: email.toLowerCase() })
     if (existingUser) {
-      return res.status(409).json({ error: 'Bu email adresi zaten kullanılıyor' })
+      return res.status(400).json({ error: 'User with this email already exists' })
     }
 
     // Hash password
-    const hashedPassword = await hashPassword(password)
+    const hashedPassword = await bcrypt.hash(password, 10)
 
-    // Create new user
+    // Create user
     const newUser = {
-      name,
-      email,
+      name: name.trim(),
+      email: email.toLowerCase().trim(),
+      phone: phone || '',
       password: hashedPassword,
-      phone: phone || null,
-      role: 'customer',
       status: 'active',
+      isVerified: false,
+      registerDate: new Date(),
+      lastLogin: new Date(),
+      totalOrders: 0,
+      totalSpent: 0,
+      address: '',
+      orders: [],
       createdAt: new Date(),
-      updatedAt: new Date(),
-      emailVerified: false,
-      addresses: [],
-      favorites: [],
-      orders: []
+      updatedAt: new Date()
     }
 
     const result = await usersCollection.insertOne(newUser)
 
-    // Generate token
-    const token = generateToken({
-      id: result.insertedId,
+    // Return user without password
+    const user = {
+      id: result.insertedId.toString(),
+      name: newUser.name,
       email: newUser.email,
-      role: 'customer'
-    })
+      phone: newUser.phone,
+      status: newUser.status,
+      isVerified: newUser.isVerified,
+      registerDate: newUser.registerDate,
+      lastLogin: newUser.lastLogin,
+      totalOrders: newUser.totalOrders,
+      totalSpent: newUser.totalSpent
+    }
 
-    // Return success
-    res.status(201).json({
-      success: true,
-      token,
-      user: {
-        id: result.insertedId,
-        name: newUser.name,
-        email: newUser.email,
-        phone: newUser.phone
-      }
+    res.status(201).json({ 
+      success: true, 
+      message: 'User registered successfully',
+      user 
     })
-
   } catch (error) {
     console.error('Registration error:', error)
-    res.status(500).json({ error: 'Sunucu hatası' })
+    res.status(500).json({ error: 'Internal server error' })
   }
 }
-

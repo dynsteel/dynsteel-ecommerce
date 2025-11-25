@@ -1,6 +1,6 @@
 import AdminLayout from '../../../components/AdminLayout'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Search,
   Filter,
@@ -29,6 +29,34 @@ export default function UsersManagement() {
 
   // Kullanıcı verileri
   const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  // Fetch users from API
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/admin/users')
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Kullanıcılar yüklenemedi')
+        }
+
+        setUsers(data.users || [])
+        setError(null)
+      } catch (err) {
+        console.error('Error fetching users:', err)
+        setError(err.message)
+        setUsers([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchUsers()
+  }, [])
 
   const statusOptions = [
     { value: 'all', label: 'Tüm Kullanıcılar' },
@@ -166,10 +194,29 @@ export default function UsersManagement() {
           </div>
         </div>
 
+        {/* Loading State */}
+        {loading && (
+          <div className="bg-white rounded-lg border border-gray-200 p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-4 text-gray-600">Kullanıcılar yükleniyor...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 text-red-600 mr-2" />
+              <p className="text-red-800">{error}</p>
+            </div>
+          </div>
+        )}
+
         {/* Users Table */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+        {!loading && !error && (
+          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -278,8 +325,9 @@ export default function UsersManagement() {
             </table>
           </div>
         </div>
+        )}
 
-        {filteredUsers.length === 0 && (
+        {!loading && !error && filteredUsers.length === 0 && (
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Kullanıcı bulunamadı</h3>
