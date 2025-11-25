@@ -6,6 +6,10 @@ export default async function handler(req, res) {
   }
 
   try {
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({ error: 'MongoDB connection not configured' })
+    }
+
     const client = await clientPromise
     const db = client.db('dynsteel')
     const usersCollection = db.collection('users')
@@ -38,7 +42,6 @@ export default async function handler(req, res) {
     })
   } catch (error) {
     console.error('Get users error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ error: error.message || 'Internal server error' })
   }
 }
-

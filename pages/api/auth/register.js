@@ -7,6 +7,10 @@ export default async function handler(req, res) {
   }
 
   try {
+    if (!process.env.MONGODB_URI) {
+      return res.status(500).json({ error: 'MongoDB connection not configured' })
+    }
+
     const { name, email, phone, password } = req.body
 
     // Validation
