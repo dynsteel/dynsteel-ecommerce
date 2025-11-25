@@ -80,30 +80,15 @@ export default function ThreeDScanPage() {
                 {/* Video Container */}
                 <div className="bg-white/10 rounded-2xl p-4 backdrop-blur-sm border border-white/20">
                   <div className="aspect-video rounded-xl overflow-hidden bg-primary-700/50 relative">
-                    {/* Video Player - Buraya video src'nizi ekleyebilirsiniz */}
-                    <video 
-                      className="w-full h-full object-cover rounded-xl"
-                      controls
-                      poster="/api/placeholder/640/360" // Video poster image
-                    >
-                      <source src="/videos/3d-scanning-process.mp4" type="video/mp4" />
-                      <source src="/videos/3d-scanning-process.webm" type="video/webm" />
-                      {/* Fallback content */}
-                      <div className="absolute inset-0 flex items-center justify-center text-white">
-                        <div className="text-center">
-                          <div className="text-6xl mb-4">🎥</div>
-                          <p className="text-lg">3D Tarama Süreci Videosu</p>
-                          <p className="text-sm text-primary-300 mt-2">Video yüklenemedi</p>
-                        </div>
-                      </div>
-                    </video>
-                    
-                    {/* Play Button Overlay (opsiyonel) */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="bg-accent-600/80 rounded-full p-4 backdrop-blur-sm">
-                        <div className="w-0 h-0 border-l-8 border-l-white border-t-6 border-t-transparent border-b-6 border-b-transparent ml-1"></div>
-                      </div>
-                    </div>
+                    {/* YouTube Video Embed */}
+                    <iframe
+                      className="w-full h-full rounded-xl"
+                      src="https://www.youtube.com/embed/zPBlFTrnJtg?rel=0&modestbranding=1"
+                      title="3D Tarama ve Üretim Süreci"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      loading="lazy"
+                    ></iframe>
                   </div>
                   
                   {/* Video Açıklaması */}
