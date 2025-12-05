@@ -76,22 +76,22 @@ export default function Home() {
     }
   ]
   const categories = [
-    { name: 'Mercedes', icon: '🚙', count: '180+ ürün', description: 'C, E, S Class için', slug: 'mercedes' },
-    { name: 'BMW', icon: '🏎️', count: '300+ ürün', description: '3, 5, X serisi için', slug: 'bmw' },
-    { name: 'Audi', icon: '🚗', count: '220+ ürün', description: 'A3, A4, Q5 için', slug: 'audi' },
-    { name: 'Volkswagen', icon: '🚗', count: '250+ ürün', description: 'Golf, Passat, Polo için', slug: 'volkswagen' },
-    { name: 'Ford', icon: '🚐', count: '190+ ürün', description: 'Focus, Fiesta için', slug: 'ford' },
-    { name: 'Toyota', icon: '🚗', count: '200+ ürün', description: 'Corolla, Camry için', slug: 'toyota' },
-    { name: 'Honda', icon: '🏁', count: '160+ ürün', description: 'Civic, Accord için', slug: 'honda' },
-    { name: 'Renault', icon: '🚙', count: '140+ ürün', description: 'Megane, Clio için', slug: 'renault' },
-    { name: 'Peugeot', icon: '🦁', count: '120+ ürün', description: '206, 307, 508 için', slug: 'peugeot' },
-    { name: 'Opel', icon: '⚡', count: '110+ ürün', description: 'Astra, Corsa için', slug: 'opel' },
-    { name: 'Fiat', icon: '🇮🇹', count: '95+ ürün', description: 'Punto, Bravo için', slug: 'fiat' },
-    { name: 'Seat', icon: '🔥', count: '85+ ürün', description: 'Leon, Ibiza için', slug: 'seat' },
-    { name: 'Skoda', icon: '💎', count: '90+ ürün', description: 'Octavia, Fabia için', slug: 'skoda' },
-    { name: 'Hyundai', icon: '🌟', count: '130+ ürün', description: 'i20, i30, Tucson için', slug: 'hyundai' },
-    { name: 'Kia', icon: '🚀', count: '115+ ürün', description: 'Ceed, Sportage için', slug: 'kia' },
-    { name: 'Nissan', icon: '🌊', count: '125+ ürün', description: 'Micra, Qashqai için', slug: 'nissan' }
+    { name: 'Mercedes', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg', slug: 'mercedes' },
+    { name: 'BMW', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg', slug: 'bmw' },
+    { name: 'Audi', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg', slug: 'audi' },
+    { name: 'Volkswagen', logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg', slug: 'volkswagen' },
+    { name: 'Ford', logo: 'https://cdn.worldvectorlogo.com/logos/ford-6.svg', slug: 'ford' },
+    { name: 'Toyota', logo: 'https://cdn.worldvectorlogo.com/logos/toyota-1.svg', slug: 'toyota' },
+    { name: 'Honda', logo: 'https://cdn.worldvectorlogo.com/logos/honda-4.svg', slug: 'honda' },
+    { name: 'Renault', logo: '/logos/renault.svg', slug: 'renault' },
+    { name: 'Peugeot', logo: 'https://cdn.worldvectorlogo.com/logos/peugeot-1.svg', slug: 'peugeot' },
+    { name: 'Opel', logo: 'https://cdn.worldvectorlogo.com/logos/opel-6.svg', slug: 'opel' },
+    { name: 'Fiat', logo: 'https://cdn.worldvectorlogo.com/logos/fiat-2.svg', slug: 'fiat' },
+    { name: 'Seat', logo: 'https://cdn.worldvectorlogo.com/logos/seat-2.svg', slug: 'seat' },
+    { name: 'Skoda', logo: '/logos/skoda.svg', slug: 'skoda' },
+    { name: 'Hyundai', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Hyundai_symbol.svg', slug: 'hyundai' },
+    { name: 'Kia', logo: 'https://cdn.worldvectorlogo.com/logos/kia-motors-1.svg', slug: 'kia' },
+    { name: 'Nissan', logo: 'https://cdn.worldvectorlogo.com/logos/nissan-1.svg', slug: 'nissan' }
   ]
 
   const features = [
@@ -156,25 +156,6 @@ export default function Home() {
               </Link>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-8 max-w-4xl mx-auto animate-slide-up">
-              <div className="text-center glass-effect p-4 rounded-lg border border-primary-700">
-                <div className="text-3xl font-bold text-accent-400">2500+</div>
-                <div className="text-primary-400 text-sm">Ürün Çeşidi</div>
-              </div>
-              <div className="text-center glass-effect p-4 rounded-lg border border-primary-700">
-                <div className="text-3xl font-bold text-accent-400">15K+</div>
-                <div className="text-primary-400 text-sm">Mutlu Müşteri</div>
-              </div>
-              <div className="text-center glass-effect p-4 rounded-lg border border-primary-700">
-                <div className="text-3xl font-bold text-accent-400">50+</div>
-                <div className="text-primary-400 text-sm">Araba Markası</div>
-              </div>
-              <div className="text-center glass-effect p-4 rounded-lg border border-primary-700">
-                <div className="text-3xl font-bold text-accent-400">24/7</div>
-                <div className="text-primary-400 text-sm">Destek</div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -324,7 +305,7 @@ export default function Home() {
                   <div className="w-8 h-8 bg-accent-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm">✓</span>
                   </div>
-                  <span className="text-white">15K+ Mutlu Müşteri</span>
+                  <span className="text-white">Kaliteli Hizmet</span>
                 </div>
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-accent-600 rounded-full flex items-center justify-center">
@@ -336,7 +317,7 @@ export default function Home() {
                   <div className="w-8 h-8 bg-accent-600 rounded-full flex items-center justify-center">
                     <span className="text-white text-sm">✓</span>
                   </div>
-                  <span className="text-white">24/7 Müşteri Desteği</span>
+                  <span className="text-white">Hızlı Teslimat</span>
                 </div>
               </div>
 

@@ -8,11 +8,8 @@ import {
   Clock,
   Shield,
   Zap,
-  Users,
-  Award,
   Target,
-  Heart,
-  Truck
+  Heart
 } from 'lucide-react'
 
 export default function AboutPage() {
@@ -39,12 +36,6 @@ export default function AboutPage() {
     }
   ]
 
-  const stats = [
-    { number: '15K+', label: 'Mutlu Müşteri', icon: <Users className="h-6 w-6" /> },
-    { number: '2500+', label: 'Ürün Çeşidi', icon: <Award className="h-6 w-6" /> },
-    { number: '50+', label: 'Araba Markası', icon: <Truck className="h-6 w-6" /> },
-    { number: '24/7', label: 'Destek Hizmeti', icon: <Clock className="h-6 w-6" /> }
-  ]
 
   return (
     <Layout>
@@ -152,10 +143,10 @@ export default function AboutPage() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-accent-600 rounded-xl text-white mb-6 group-hover:bg-accent-500 transition-colors hover-glow">
                   {value.icon}
                 </div>
-                <h3 className="text-xl font-semibold text-white mb-3 group-hover:text-accent-400 transition-colors">
+                <h3 className="text-xl font-semibold text-gray-900 mb-3 group-hover:text-accent-600 transition-colors">
                   {value.title}
                 </h3>
-                <p className="text-primary-400">
+                <p className="text-gray-700">
                   {value.description}
                 </p>
               </div>
@@ -164,36 +155,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-primary-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-              Rakamlarla DynSteel
-            </h2>
-            <p className="text-xl text-primary-300 max-w-2xl mx-auto">
-              Başarılarımızı gösteren rakamlar ve istatistikler
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <div
-                key={index}
-                className="text-center glass-effect p-8 rounded-xl border border-primary-700 hover:border-accent-500 transition-all duration-300 group"
-              >
-                <div className="flex justify-center text-accent-400 mb-4 group-hover:scale-110 transition-transform">
-                  {stat.icon}
-                </div>
-                <div className="text-3xl font-bold text-white mb-2 group-hover:text-accent-400 transition-colors">
-                  {stat.number}
-                </div>
-                <div className="text-primary-300">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Services Section */}
       <section className="py-20 bg-primary-800">
@@ -214,11 +175,11 @@ export default function AboutPage() {
                 <div className="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center text-white text-2xl mr-4 group-hover:bg-accent-500 transition-colors">
                   📱
                 </div>
-                <h3 className="text-2xl font-semibold text-white group-hover:text-accent-400 transition-colors">
+                <h3 className="text-2xl font-semibold text-gray-900 group-hover:text-accent-600 transition-colors">
                   3D Tarama ve Üretim
                 </h3>
               </div>
-              <p className="text-primary-300 mb-6">
+              <p className="text-gray-700 mb-6">
                 Bulamadığınız araba parçalarını 3D tarama teknolojisi ile özel olarak üretiyoruz. 
                 1 saat içinde teklif, orijinal kalitede üretim garantisi.
               </p>
@@ -235,11 +196,11 @@ export default function AboutPage() {
                 <div className="w-12 h-12 bg-accent-600 rounded-lg flex items-center justify-center text-white text-2xl mr-4 group-hover:bg-accent-500 transition-colors">
                   🏎️
                 </div>
-                <h3 className="text-2xl font-semibold text-white group-hover:text-accent-400 transition-colors">
+                <h3 className="text-2xl font-semibold text-gray-900 group-hover:text-accent-600 transition-colors">
                   Minyatür Araba Koleksiyonu
                 </h3>
               </div>
-              <p className="text-primary-300 mb-6">
+              <p className="text-gray-700 mb-6">
                 Premium kalitede minyatür araba modelleri. Ferrari, BMW, Mercedes ve daha fazlası. 
                 Koleksiyonunuzu genişletmek için geniş ürün yelpazesi.
               </p>
@@ -273,7 +234,7 @@ export default function AboutPage() {
             <div className="text-center">
               <Mail className="h-8 w-8 text-white mx-auto mb-2" />
               <div className="text-lg font-semibold text-white">E-posta</div>
-              <div className="text-blue-200">steeldyn@gmail.com</div>
+              <div className="text-blue-200">info@dynsteel.com</div>
             </div>
             <div className="text-center">
               <Clock className="h-8 w-8 text-white mx-auto mb-2" />
@@ -294,7 +255,7 @@ export default function AboutPage() {
             </a>
             
             <a 
-              href="mailto:steeldyn@gmail.com?subject=DynSteel Hakkında Bilgi&body=Merhaba, DynSteel hizmetleri hakkında bilgi almak istiyorum."
+              href="mailto:info@dynsteel.com?subject=DynSteel Hakkında Bilgi&body=Merhaba, DynSteel hizmetleri hakkında bilgi almak istiyorum."
               className="bg-white text-accent-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-primary-50 transition-all hover:scale-105 flex items-center justify-center space-x-3"
             >
               <Mail className="h-5 w-5" />

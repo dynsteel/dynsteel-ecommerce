@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120" width="200" height="120">
+  <!-- Oval background -->
+  <ellipse cx="100" cy="60" rx="90" ry="50" fill="#002C5F" stroke="#002C5F" stroke-width="2"/>
+  <!-- Stylized H letter - blue color -->
+  <path d="M 55 25 L 55 50 L 70 50 L 70 40 L 85 40 L 85 50 L 100 50 L 100 40 L 115 40 L 115 50 L 130 50 L 130 25 L 115 25 L 115 35 L 100 35 L 100 25 L 85 25 L 85 35 L 70 35 L 70 25 Z" 
+        fill="#002C5F" stroke="#002C5F" stroke-width="1.5"/>
+  <!-- Curved left stroke -->
+  <path d="M 55 25 Q 50 30 50 37.5 Q 50 45 55 50" 
+        fill="none" stroke="#002C5F" stroke-width="3" stroke-linecap="round"/>
+  <!-- Curved right stroke -->
+  <path d="M 130 25 Q 135 30 135 37.5 Q 135 45 130 50" 
+        fill="none" stroke="#002C5F" stroke-width="3" stroke-linecap="round"/>
+  <!-- Diagonal connecting bar -->
+  <path d="M 70 40 L 115 40" stroke="#002C5F" stroke-width="3" fill="none"/>
+</svg>

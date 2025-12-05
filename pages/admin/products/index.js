@@ -25,7 +25,27 @@ export default function ProductsManagement() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const categories = ['all', 'Ferrari', 'BMW', 'Mercedes', 'Porsche', 'Audi', 'Volkswagen', 'Toyota', 'Honda']
+  const categories = [
+    { value: 'all', label: 'Tüm Kategoriler' },
+    { value: 'Ferrari', label: 'Ferrari' },
+    { value: 'BMW', label: 'BMW' },
+    { value: 'Mercedes', label: 'Mercedes' },
+    { value: 'Audi', label: 'Audi' },
+    { value: 'Porsche', label: 'Porsche' },
+    { value: 'Volkswagen', label: 'Volkswagen' },
+    { value: 'Ford', label: 'Ford' },
+    { value: 'Toyota', label: 'Toyota' },
+    { value: 'Honda', label: 'Honda' },
+    { value: 'Renault', label: 'Renault' },
+    { value: 'Peugeot', label: 'Peugeot' },
+    { value: 'Opel', label: 'Opel' },
+    { value: 'Fiat', label: 'Fiat' },
+    { value: 'Seat', label: 'Seat' },
+    { value: 'Skoda', label: 'Skoda' },
+    { value: 'Hyundai', label: 'Hyundai' },
+    { value: 'Kia', label: 'Kia' },
+    { value: 'Nissan', label: 'Nissan' }
+  ]
 
   // Fetch products from API
   useEffect(() => {
@@ -69,7 +89,7 @@ export default function ProductsManagement() {
 
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory
+    const matchesCategory = selectedCategory === 'all' || product.category?.toLowerCase() === selectedCategory.toLowerCase() || product.brand?.toLowerCase() === selectedCategory.toLowerCase()
     return matchesSearch && matchesCategory
   })
 
@@ -115,50 +135,17 @@ export default function ProductsManagement() {
             <p className="text-gray-600">Tüm ürünlerinizi buradan yönetebilirsiniz</p>
           </div>
           
-          {/* Dropdown Menu */}
-          <div className="relative" ref={dropdownRef}>
-            <button
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
-            >
+          {/* Minyatür Arabaları Ekle Butonu - Kategoriye göre yönlendirme */}
+          <Link href={selectedCategory !== 'all' ? `/admin/products/new?category=${selectedCategory}` : '/admin/products/new'}>
+            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors">
               <Plus className="h-4 w-4" />
-              <span>Yeni Ürün Ekle</span>
-              <ChevronDown className="h-4 w-4" />
+              <span>
+                {selectedCategory !== 'all' 
+                  ? `${categories.find(c => c.value === selectedCategory)?.label} Kategorisine Minyatür Araba Ekle`
+                  : 'Minyatür Arabaları Ekle'}
+              </span>
             </button>
-
-            {/* Dropdown Menu */}
-            {isDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-xl z-50">
-                <div className="py-2">
-                  <Link href="/admin/products/new">
-                    <button
-                      onClick={() => setIsDropdownOpen(false)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-center space-x-3"
-                    >
-                      <FileText className="h-5 w-5 text-blue-600" />
-                      <div>
-                        <div className="font-medium text-gray-900">Admin Panel Ürün Ekleme</div>
-                        <div className="text-sm text-gray-500">Detaylı form ile ürün ekle</div>
-                      </div>
-                    </button>
-                  </Link>
-                  
-                  <Link href="/products?admin=true">
-                    <button
-                      onClick={() => setIsDropdownOpen(false)}
-                      className="w-full text-left px-4 py-3 hover:bg-gray-50 transition-colors flex items-center space-x-3"
-                    >
-                      <Globe className="h-5 w-5 text-green-600" />
-                      <div>
-                        <div className="font-medium text-gray-900">Web Sitesi Ürünler Sayfası</div>
-                        <div className="text-sm text-gray-500">Canlı sayfada hızlı ürün ekle</div>
-                      </div>
-                    </button>
-                  </Link>
-                </div>
-              </div>
-            )}
-          </div>
+          </Link>
         </div>
 
         {/* Stats */}
@@ -201,8 +188,26 @@ export default function ProductsManagement() {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Kategori Filtreleri ve Arama */}
         <div className="bg-white rounded-lg p-6 border border-gray-200">
+          {/* Kategori Butonları */}
+          <div className="flex flex-wrap gap-3 mb-4">
+            {categories.map(category => (
+              <button
+                key={category.value}
+                onClick={() => setSelectedCategory(category.value)}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  selectedCategory === category.value
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {category.label}
+              </button>
+            ))}
+          </div>
+          
+          {/* Arama */}
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
@@ -215,20 +220,6 @@ export default function ProductsManagement() {
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Filter className="h-4 w-4 text-gray-400" />
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                {categories.map(category => (
-                  <option key={category} value={category}>
-                    {category === 'all' ? 'Tüm Kategoriler' : category}
-                  </option>
-                ))}
-              </select>
             </div>
           </div>
         </div>
@@ -254,7 +245,7 @@ export default function ProductsManagement() {
         {/* Products Table */}
         {!loading && !error && (
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
+            <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -286,10 +277,27 @@ export default function ProductsManagement() {
                   <tr key={product.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="text-2xl mr-3">{product.image}</div>
+                        <div className="w-12 h-12 mr-3 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
+                          {product.image && (product.image.startsWith('data:image') || product.image.startsWith('http')) ? (
+                            <img 
+                              src={product.image} 
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null
+                                e.target.style.display = 'none'
+                                e.target.parentElement.innerHTML = '<div class="text-xl w-full h-full flex items-center justify-center">🚗</div>'
+                              }}
+                            />
+                          ) : (
+                            <div className="text-xl w-full h-full flex items-center justify-center">
+                              {product.image || '🚗'}
+                            </div>
+                          )}
+                        </div>
                         <div>
                           <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                          <div className="text-sm text-gray-500">ID: {product.id}</div>
+                          <div className="text-sm text-gray-500 font-mono">{product.productCode || 'DS-0000'}</div>
                         </div>
                       </div>
                     </td>
@@ -299,7 +307,7 @@ export default function ProductsManagement() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ₺{product.price.toLocaleString()}
+                      ₺{typeof product.price === 'number' ? product.price.toLocaleString() : product.price || 0}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       {product.stock} adet
@@ -308,7 +316,7 @@ export default function ProductsManagement() {
                       {getStatusBadge(product.status, product.stock)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.sales} satış
+                      {product.sales || 0} satış
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
@@ -333,15 +341,14 @@ export default function ProductsManagement() {
               </tbody>
             </table>
           </div>
-        </div>
 
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Ürün bulunamadı</h3>
-            <p className="text-gray-600">Arama kriterlerinize uygun ürün bulunamadı.</p>
-          </div>
-        )}
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Ürün bulunamadı</h3>
+                <p className="text-gray-600">Arama kriterlerinize uygun ürün bulunamadı.</p>
+              </div>
+            )}
           </div>
         )}
       </div>

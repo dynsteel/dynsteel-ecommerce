@@ -22,18 +22,69 @@ export default function ContactPage() {
     subject: '',
     message: ''
   })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState(null) // 'success' or 'error'
+  const [submitMessage, setSubmitMessage] = useState('')
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     })
+    // Reset status when user starts typing
+    if (submitStatus) {
+      setSubmitStatus(null)
+      setSubmitMessage('')
+    }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Form gönderme işlemi burada yapılacak
-    console.log('Form data:', formData)
+    
+    // Validation
+    if (!formData.name || !formData.email || !formData.message) {
+      setSubmitStatus('error')
+      setSubmitMessage('Lütfen tüm zorunlu alanları doldurun.')
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitStatus(null)
+    setSubmitMessage('')
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (response.ok && data.success) {
+        setSubmitStatus('success')
+        setSubmitMessage('Mesajınız başarıyla gönderildi! En kısa sürede size geri dönüş yapacağız.')
+        // Reset form
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          subject: '',
+          message: ''
+        })
+      } else {
+        setSubmitStatus('error')
+        setSubmitMessage(data.error || 'Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.')
+      }
+    } catch (error) {
+      console.error('Form submission error:', error)
+      setSubmitStatus('error')
+      setSubmitMessage('Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const contactInfo = [
@@ -49,7 +100,7 @@ export default function ContactPage() {
       title: 'E-posta',
       info: 'info@dynsteel.com',
       description: 'Sorularınız için e-posta gönderebilirsiniz',
-      action: 'mailto:steeldyn@gmail.com'
+      action: 'mailto:info@dynsteel.com'
     },
     {
       icon: <Clock className="h-8 w-8" />,
@@ -133,11 +184,11 @@ export default function ContactPage() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-accent-600 rounded-xl text-white mb-4 group-hover:bg-accent-500 transition-colors hover-glow">
                   {item.icon}
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2 group-hover:text-accent-400 transition-colors">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-accent-600 transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-accent-400 font-medium mb-2">{item.info}</p>
-                <p className="text-primary-400 text-sm mb-4">{item.description}</p>
+                <p className="text-gray-800 font-medium mb-2">{item.info}</p>
+                <p className="text-gray-700 text-sm mb-4">{item.description}</p>
                 {item.action && (
                   <a
                     href={item.action}
@@ -261,12 +312,35 @@ export default function ContactPage() {
                   </div>
                 </div>
 
+                {/* Status Message */}
+                {submitStatus && (
+                  <div className={`p-4 rounded-lg ${
+                    submitStatus === 'success' 
+                      ? 'bg-green-500/20 border border-green-500 text-green-300' 
+                      : 'bg-red-500/20 border border-red-500 text-red-300'
+                  }`}>
+                    <p className="text-sm">{submitMessage}</p>
+                  </div>
+                )}
+
                 <button
                   type="submit"
-                  className="w-full bg-accent-600 hover:bg-accent-700 text-white py-3 px-6 rounded-lg font-semibold transition-all hover:scale-105 flex items-center justify-center space-x-2"
+                  disabled={isSubmitting}
+                  className={`w-full bg-accent-600 hover:bg-accent-700 text-white py-3 px-6 rounded-lg font-semibold transition-all hover:scale-105 flex items-center justify-center space-x-2 ${
+                    isSubmitting ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
                 >
-                  <Send className="h-5 w-5" />
-                  <span>Mesaj Gönder</span>
+                  {isSubmitting ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      <span>Gönderiliyor...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="h-5 w-5" />
+                      <span>Mesaj Gönder</span>
+                    </>
+                  )}
                 </button>
               </form>
             </div>
@@ -306,13 +380,13 @@ export default function ContactPage() {
                 </a>
 
                 <a
-                  href="mailto:steeldyn@gmail.com?subject=DynSteel İletişim&body=Merhaba, size ulaşmak istiyorum."
+                  href="mailto:info@dynsteel.com?subject=DynSteel İletişim&body=Merhaba, size ulaşmak istiyorum."
                   className="w-full bg-purple-600 hover:bg-purple-700 text-white p-4 rounded-lg font-semibold transition-all hover:scale-105 flex items-center space-x-3"
                 >
                   <Mail className="h-6 w-6" />
                   <div>
                     <div className="font-semibold">E-posta Gönderin</div>
-                    <div className="text-sm opacity-90">steeldyn@gmail.com</div>
+                    <div className="text-sm opacity-90">info@dynsteel.com</div>
                   </div>
                 </a>
 
@@ -332,11 +406,11 @@ export default function ContactPage() {
 
               {/* Business Hours */}
               <div className="glass-effect p-6 rounded-xl border border-primary-700">
-                <h3 className="text-xl font-semibold text-white mb-4 flex items-center">
-                  <Clock className="h-5 w-5 mr-2 text-accent-400" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+                  <Clock className="h-5 w-5 mr-2 text-accent-600" />
                   Çalışma Saatleri
                 </h3>
-                <div className="space-y-2 text-primary-300">
+                <div className="space-y-2 text-gray-700">
                   <div className="flex justify-between">
                     <span>Pazartesi - Cuma</span>
                     <span>09:00 - 18:00</span>
@@ -381,11 +455,11 @@ export default function ContactPage() {
                 className="glass-effect border border-primary-700 rounded-lg overflow-hidden"
               >
                 <div className="p-6">
-                  <h3 className="text-lg font-semibold text-white mb-3 flex items-start">
-                    <CheckCircle className="h-5 w-5 text-accent-400 mr-2 mt-0.5 flex-shrink-0" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-3 flex items-start">
+                    <CheckCircle className="h-5 w-5 text-accent-600 mr-2 mt-0.5 flex-shrink-0" />
                     {item.question}
                   </h3>
-                  <p className="text-primary-300 ml-7">
+                  <p className="text-gray-700 ml-7">
                     {item.answer}
                   </p>
                 </div>

@@ -271,7 +271,7 @@ export default function OrdersManagement() {
         {/* Orders Table */}
         {!loading && !error && (
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
+            <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
@@ -377,15 +377,14 @@ export default function OrdersManagement() {
               </tbody>
             </table>
           </div>
-        </div>
 
-        {filteredOrders.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Sipariş bulunamadı</h3>
-            <p className="text-gray-600">Arama kriterlerinize uygun sipariş bulunamadı.</p>
-          </div>
-        )}
+            {filteredOrders.length === 0 && (
+              <div className="text-center py-12">
+                <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Sipariş bulunamadı</h3>
+                <p className="text-gray-600">Arama kriterlerinize uygun sipariş bulunamadı.</p>
+              </div>
+            )}
           </div>
         )}
       </div>

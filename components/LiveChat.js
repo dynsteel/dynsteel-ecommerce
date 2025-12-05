@@ -73,10 +73,6 @@ export default function LiveChat() {
       return "Kargo bilgileri: 📦\n• Kargo süremiz: 1-3 iş günü\n• Ücretsiz kargo: 500₺ ve üzeri siparişlerde\n• Kargo ücreti: 25₺ (500₺ altı siparişlerde)\n• Kargo firmaları: PTT, Yurtiçi Kargo\nSiparişiniz hazırlandıktan sonra kargo takip numaranızı e-posta ile gönderiyoruz."
     }
     
-    // İade/Değişim
-    if (lowerMessage.match(/(iade|değişim|değiştir|geri gönder|iptal|vazgeç)/)) {
-      return "İade & Değişim Politikamız: 🔄\n• İade süresi: 14 gün\n• Ürün orijinal ambalajında ve hasarsız olmalı\n• İade kargo ücreti müşteriye aittir\n• Değişim talepleri için önce bizimle iletişime geçin\nDetaylı bilgi için İade & Değişim sayfamızı inceleyebilirsiniz."
-    }
     
     // İletişim
     if (lowerMessage.match(/(iletişim|ulaş|telefon|numara|adres|email|e-posta|whatsapp|konuş|görüş)/)) {
@@ -100,7 +96,7 @@ export default function LiveChat() {
     
     // Genel yardım
     if (lowerMessage.match(/(yardım|bilgi|nasıl|ne|hakkında|detay|açıkla|anlamadım)/)) {
-      return "Size nasıl yardımcı olabilirim? 🤔\n• Ürün bilgileri\n• 3D tarama hizmetleri\n• Sipariş durumu\n• Kargo bilgileri\n• İade & değişim\n• İletişim bilgileri\n\nHangi konuda bilgi almak istiyorsunuz?"
+      return "Size nasıl yardımcı olabilirim? 🤔\n• Ürün bilgileri\n• 3D tarama hizmetleri\n• Sipariş durumu\n• Kargo bilgileri\n• İletişim bilgileri\n\nHangi konuda bilgi almak istiyorsunuz?"
     }
     
     // Teşekkür

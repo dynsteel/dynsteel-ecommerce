@@ -34,7 +34,6 @@ export default function EditProduct() {
     price: '',
     originalPrice: '',
     stock: '',
-    scale: '',
     description: '',
     features: [''],
     status: 'active',
@@ -48,7 +47,6 @@ export default function EditProduct() {
     'Lamborghini', 'McLaren', 'Bugatti', 'Koenigsegg', 'Pagani'
   ]
 
-  const scales = ['1:18', '1:24', '1:32', '1:43', '1:64']
   const statuses = [
     { value: 'active', label: 'Aktif', color: 'green' },
     { value: 'inactive', label: 'Pasif', color: 'gray' },
@@ -75,7 +73,6 @@ export default function EditProduct() {
             price: data.product.price?.toString() || '',
             originalPrice: data.product.originalPrice?.toString() || '',
             stock: data.product.stock?.toString() || '0',
-            scale: data.product.scale || '',
             description: data.product.description || '',
             features: data.product.features || [''],
             status: data.product.status || 'active',
@@ -190,7 +187,6 @@ export default function EditProduct() {
     if (!product.brand.trim()) newErrors.brand = 'Marka gerekli'
     if (!product.price || parseFloat(product.price) <= 0) newErrors.price = 'Geçerli bir fiyat girin'
     if (!product.stock || parseInt(product.stock) < 0) newErrors.stock = 'Geçerli bir stok miktarı girin'
-    if (!product.scale) newErrors.scale = 'Ölçek seçimi gerekli'
     if (!product.description.trim()) newErrors.description = 'Açıklama gerekli'
     
     setErrors(newErrors)
@@ -443,25 +439,6 @@ export default function EditProduct() {
               </h2>
               
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Ölçek *
-                  </label>
-                  <select
-                    value={product.scale}
-                    onChange={(e) => handleInputChange('scale', e.target.value)}
-                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                      errors.scale ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                  >
-                    <option value="">Ölçek seçin</option>
-                    {scales.map(scale => (
-                      <option key={scale} value={scale}>{scale}</option>
-                    ))}
-                  </select>
-                  {errors.scale && <p className="text-red-500 text-xs mt-1">{errors.scale}</p>}
-                </div>
-
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Öne Çıkan Özellikler

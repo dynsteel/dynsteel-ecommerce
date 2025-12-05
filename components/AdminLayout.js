@@ -16,8 +16,11 @@ import {
   Bell,
   Search,
   User,
-  ChevronDown
+  ChevronDown,
+  MessageCircle,
+  Mail
 } from 'lucide-react'
+import { playNotificationSound } from '../lib/notificationSound'
 
 const PWAInstallPrompt = dynamic(() => import('./PWAInstallPrompt'), { ssr: false })
 
@@ -25,6 +28,7 @@ const navigation = [
   { name: 'Dashboard', href: '/admin', icon: Home },
   { name: 'Ürünler', href: '/admin/products', icon: Package },
   { name: 'Siparişler', href: '/admin/orders', icon: ShoppingCart },
+  { name: 'Mesajlar', href: '/admin/messages', icon: MessageCircle },
   { name: 'Kullanıcılar', href: '/admin/users', icon: Users },
   { name: 'Raporlar', href: '/admin/reports', icon: BarChart3 },
   { name: 'Ayarlar', href: '/admin/settings', icon: Settings },
@@ -37,6 +41,10 @@ export default function AdminLayout({ children }) {
   const [isLoading, setIsLoading] = useState(true)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const [notifications, setNotifications] = useState([])
+  const [notificationCounts, setNotificationCounts] = useState({ messages: 0, orders: 0, users: 0, total: 0 })
+  const [lastCheck, setLastCheck] = useState(new Date().toISOString())
+  const [notificationPermission, setNotificationPermission] = useState('default')
   const userMenuRef = useRef(null)
   const notificationsRef = useRef(null)
 
@@ -73,6 +81,118 @@ export default function AdminLayout({ children }) {
 
     checkAuth()
   }, [router])
+
+  // Service Worker ve bildirim izni kontrolü
+  useEffect(() => {
+    if (typeof window === 'undefined' || !isAuthenticated) return
+
+    // Service Worker kaydet
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/admin-sw.js')
+        .then((registration) => {
+          console.log('Service Worker registered:', registration)
+        })
+        .catch((error) => {
+          console.error('Service Worker registration failed:', error)
+        })
+      
+      // Service Worker'dan gelen mesajları dinle (ses çalma için)
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'PLAY_NOTIFICATION_SOUND') {
+          playNotificationSound()
+        }
+      })
+    }
+
+    // Bildirim izni kontrolü
+    if ('Notification' in window) {
+      setNotificationPermission(Notification.permission)
+      
+      // İzin yoksa iste
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+          setNotificationPermission(permission)
+        })
+      }
+    }
+  }, [isAuthenticated])
+
+  // Bildirimleri kontrol et
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    let mounted = true
+    let currentLastCheck = lastCheck
+    let prevTotal = 0
+
+    const fetchNotifications = async () => {
+      try {
+        const response = await fetch(`/api/admin/notifications?lastCheck=${encodeURIComponent(currentLastCheck)}`)
+        const data = await response.json()
+
+        if (!mounted) return
+
+        if (response.ok && data.success) {
+          const newTotal = data.counts.total
+
+          // Yeni bildirimler varsa
+          if (newTotal > prevTotal && prevTotal >= 0) {
+            const newNotifications = data.notifications.slice(0, Math.min(newTotal - prevTotal, 5))
+            
+            // Yeni bildirim geldiğinde ses çal
+            if (newNotifications.length > 0) {
+              playNotificationSound()
+            }
+            
+            // Browser bildirimi göster
+            if (notificationPermission === 'granted' && newNotifications.length > 0) {
+              newNotifications.forEach(notif => {
+                try {
+                  const notification = new Notification(notif.title, {
+                    body: notif.message,
+                    icon: '/icons/admin-icon.svg',
+                    badge: '/icons/admin-icon.svg',
+                    tag: notif.id,
+                    requireInteraction: false,
+                    vibrate: [200, 100, 200], // Telefon için titreşim
+                    data: {
+                      url: notif.link
+                    }
+                  })
+                  
+                  notification.onclick = () => {
+                    window.focus()
+                    router.push(notif.link)
+                  }
+                } catch (err) {
+                  console.error('Error showing notification:', err)
+                }
+              })
+            }
+          }
+
+          setNotifications(data.notifications)
+          setNotificationCounts(data.counts)
+          currentLastCheck = new Date().toISOString()
+          setLastCheck(currentLastCheck)
+          prevTotal = newTotal
+        }
+      } catch (error) {
+        console.error('Error fetching notifications:', error)
+      }
+    }
+
+    // İlk yükleme
+    fetchNotifications()
+
+    // Her 30 saniyede bir kontrol et
+    const interval = setInterval(fetchNotifications, 30000)
+
+    return () => {
+      mounted = false
+      clearInterval(interval)
+    }
+  }, [isAuthenticated, notificationPermission, router])
 
   // Tarayıcı/sekme kapanınca otomatik çıkış (Opsiyonel - Daha yüksek güvenlik için)
   useEffect(() => {
@@ -254,9 +374,11 @@ export default function AdminLayout({ children }) {
                   className="p-2 text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-lg relative"
                 >
                   <Bell className="h-5 w-5" />
-                  <span className="absolute top-0 right-0 h-3 w-3 bg-red-500 text-white text-xs rounded-full flex items-center justify-center text-[8px]">
-                    3
-                  </span>
+                  {notificationCounts.total > 0 && (
+                    <span className="absolute top-0 right-0 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-semibold">
+                      {notificationCounts.total > 99 ? '99+' : notificationCounts.total}
+                    </span>
+                  )}
                 </button>
 
                 {/* Notifications Panel */}
@@ -265,68 +387,113 @@ export default function AdminLayout({ children }) {
                     <div className="p-4 border-b border-gray-200">
                       <div className="flex items-center justify-between">
                         <h3 className="text-sm font-semibold text-gray-900">Bildirimler</h3>
-                        <span className="text-xs text-gray-500">3 yeni</span>
+                        {notificationCounts.total > 0 && (
+                          <span className="text-xs text-gray-500">{notificationCounts.total} yeni</span>
+                        )}
                       </div>
+                      {notificationPermission !== 'granted' && (
+                        <button
+                          onClick={async () => {
+                            if ('Notification' in window) {
+                              const permission = await Notification.requestPermission()
+                              setNotificationPermission(permission)
+                            }
+                          }}
+                          className="mt-2 text-xs text-blue-600 hover:text-blue-700"
+                        >
+                          Bildirim izni ver
+                        </button>
+                      )}
                     </div>
                     
                     <div className="max-h-96 overflow-y-auto">
-                      {/* Bildirim 1 */}
-                      <div className="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer">
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
-                              <ShoppingCart className="h-4 w-4 text-blue-600" />
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900">Yeni sipariş</p>
-                            <p className="text-xs text-gray-500 mt-1">Ömer Katırcı yeni bir sipariş verdi (₺6,380)</p>
-                            <p className="text-xs text-gray-400 mt-1">2 dakika önce</p>
-                          </div>
-                          <span className="h-2 w-2 bg-blue-500 rounded-full"></span>
+                      {notifications.length === 0 ? (
+                        <div className="p-8 text-center">
+                          <Bell className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-500">Yeni bildirim yok</p>
                         </div>
-                      </div>
+                      ) : (
+                        notifications.map((notif) => {
+                          const getIcon = () => {
+                            switch (notif.type) {
+                              case 'message':
+                                return <MessageCircle className="h-4 w-4 text-blue-600" />
+                              case 'order':
+                                return <ShoppingCart className="h-4 w-4 text-green-600" />
+                              case 'user':
+                                return <Users className="h-4 w-4 text-purple-600" />
+                              default:
+                                return <Bell className="h-4 w-4 text-gray-600" />
+                            }
+                          }
 
-                      {/* Bildirim 2 */}
-                      <div className="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer">
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="h-8 w-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                              <Package className="h-4 w-4 text-yellow-600" />
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900">Stok uyarısı</p>
-                            <p className="text-xs text-gray-500 mt-1">Golf 6 Spoiler stokta azaldı (3 adet kaldı)</p>
-                            <p className="text-xs text-gray-400 mt-1">15 dakika önce</p>
-                          </div>
-                          <span className="h-2 w-2 bg-yellow-500 rounded-full"></span>
-                        </div>
-                      </div>
+                          const getBgColor = () => {
+                            switch (notif.type) {
+                              case 'message':
+                                return 'bg-blue-100'
+                              case 'order':
+                                return 'bg-green-100'
+                              case 'user':
+                                return 'bg-purple-100'
+                              default:
+                                return 'bg-gray-100'
+                            }
+                          }
 
-                      {/* Bildirim 3 */}
-                      <div className="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer">
-                        <div className="flex items-start space-x-3">
-                          <div className="flex-shrink-0">
-                            <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
-                              <Users className="h-4 w-4 text-green-600" />
+                          const formatTimeAgo = (date) => {
+                            if (!date) return 'Bilinmiyor'
+                            const now = new Date()
+                            const notifDate = new Date(date)
+                            const diffMs = now - notifDate
+                            const diffMins = Math.floor(diffMs / 60000)
+                            const diffHours = Math.floor(diffMs / 3600000)
+                            const diffDays = Math.floor(diffMs / 86400000)
+
+                            if (diffMins < 1) return 'Az önce'
+                            if (diffMins < 60) return `${diffMins} dakika önce`
+                            if (diffHours < 24) return `${diffHours} saat önce`
+                            return `${diffDays} gün önce`
+                          }
+
+                          return (
+                            <div
+                              key={notif.id}
+                              onClick={() => {
+                                setNotificationsOpen(false)
+                                router.push(notif.link)
+                              }}
+                              className="p-4 hover:bg-gray-50 border-b border-gray-100 cursor-pointer"
+                            >
+                              <div className="flex items-start space-x-3">
+                                <div className={`flex-shrink-0 h-8 w-8 ${getBgColor()} rounded-full flex items-center justify-center`}>
+                                  {getIcon()}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-gray-900">{notif.title}</p>
+                                  <p className="text-xs text-gray-500 mt-1">{notif.message}</p>
+                                  <p className="text-xs text-gray-400 mt-1">{formatTimeAgo(notif.createdAt)}</p>
+                                </div>
+                                <span className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900">Yeni kullanıcı</p>
-                            <p className="text-xs text-gray-500 mt-1">Ahmet Yılmaz hesap oluşturdu</p>
-                            <p className="text-xs text-gray-400 mt-1">1 saat önce</p>
-                          </div>
-                          <span className="h-2 w-2 bg-green-500 rounded-full"></span>
-                        </div>
-                      </div>
+                          )
+                        })
+                      )}
                     </div>
 
-                    <div className="p-3 border-t border-gray-200">
-                      <button className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium">
-                        Tümünü Gör
-                      </button>
-                    </div>
+                    {notifications.length > 0 && (
+                      <div className="p-3 border-t border-gray-200">
+                        <button
+                          onClick={() => {
+                            setNotificationsOpen(false)
+                            router.push('/admin')
+                          }}
+                          className="w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        >
+                          Tümünü Gör
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

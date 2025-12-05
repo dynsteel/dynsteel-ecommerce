@@ -128,93 +128,54 @@ export default function CategoryPage() {
     }
   }
 
-  // localStorage'dan admin tarafından eklenen ürünleri al
-  const getAdminProducts = () => {
-    if (typeof window !== 'undefined') {
-      const allAdminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
-      // Sadece bu markaya ait ürünleri filtrele
-      return allAdminProducts.filter(product => 
-        product.brand?.toLowerCase() === slug?.toLowerCase()
-      )
-    }
-    return []
-  }
+  const [products, setProducts] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  // Örnek ürünler (gerçek uygulamada API'den gelecek)
-  const defaultProducts = [
-    {
-      id: 1,
-      name: 'Performans Hava Filtresi',
-      price: 299,
-      originalPrice: 349,
-      image: '🌪️',
-      rating: 4.8,
-      reviews: 124,
-      category: 'Motor',
-      inStock: true,
-      description: 'Yüksek hava akışı, +5 HP artış'
-    },
-    {
-      id: 2,
-      name: 'Spor Egzoz Sistemi',
-      price: 1299,
-      originalPrice: null,
-      image: '🔥',
-      rating: 4.9,
-      reviews: 89,
-      category: 'Egzoz',
-      inStock: true,
-      description: 'Paslanmaz çelik, agresif ses'
-    },
-    {
-      id: 3,
-      name: 'LED Farlar Seti',
-      price: 899,
-      originalPrice: 1099,
-      image: '💡',
-      rating: 4.7,
-      reviews: 156,
-      category: 'Aydınlatma',
-      inStock: false,
-      description: '6000K beyaz ışık, uzun ömür'
-    },
-    {
-      id: 4,
-      name: 'Karbon Fiber Kaput',
-      price: 2499,
-      originalPrice: null,
-      image: '⚫',
-      rating: 4.6,
-      reviews: 43,
-      category: 'Kaporta',
-      inStock: true,
-      description: 'Hafif, dayanıklı, OEM uyumlu'
-    },
-    {
-      id: 5,
-      name: 'Coilover Amortisör Seti',
-      price: 1899,
-      originalPrice: 2199,
-      image: '🔧',
-      rating: 4.8,
-      reviews: 67,
-      category: 'Süspansiyon',
-      inStock: true,
-      description: 'Ayarlanabilir, yol tutuş artışı'
-    },
-    {
-      id: 6,
-      name: 'Fren Balata Seti',
-      price: 449,
-      originalPrice: null,
-      image: '🛡️',
-      rating: 4.5,
-      reviews: 201,
-      category: 'Fren',
-      inStock: true,
-      description: 'Seramik kaplama, sessiz fren'
+  // MongoDB'den ürünleri çek
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const response = await fetch('/api/admin/products')
+        const data = await response.json()
+        
+        if (response.ok && data.success && data.products) {
+          // Sadece bu markaya ait ürünleri filtrele
+          const brandProducts = data.products.filter(product => 
+            product.category?.toLowerCase() === slug?.toLowerCase()
+          )
+          
+          // MongoDB ürünlerini formatla
+          const formattedProducts = brandProducts.map(product => ({
+            id: product.id,
+            name: product.name || '',
+            price: product.price || 0,
+            originalPrice: null,
+            image: product.image || '🚗',
+            rating: 4.5,
+            reviews: 0,
+            category: product.category || '',
+            inStock: (product.stock || 0) > 0,
+            description: product.description || '',
+            stock: product.stock || 0
+          }))
+          
+          setProducts(formattedProducts)
+        } else {
+          setProducts([])
+        }
+      } catch (error) {
+        console.error('Ürün yükleme hatası:', error)
+        setProducts([])
+      } finally {
+        setLoading(false)
+      }
     }
-  ]
+    
+    if (slug) {
+      fetchProducts()
+    }
+  }, [slug])
 
   const currentBrand = brandInfo[slug] || {
     name: 'Marka',
@@ -222,9 +183,6 @@ export default function CategoryPage() {
     models: [],
     icon: '🚗'
   }
-
-  // Admin ürünlerini ve varsayılan ürünleri birleştir
-  const sampleProducts = [...defaultProducts, ...getAdminProducts()]
 
   if (!slug) {
     return <Layout><div className="min-h-screen flex items-center justify-center"><div className="text-white">Yükleniyor...</div></div></Layout>
@@ -282,7 +240,7 @@ export default function CategoryPage() {
           {/* Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
             <div className="text-center glass-effect p-4 rounded-lg border border-primary-700">
-              <div className="text-2xl font-bold text-accent-400">{sampleProducts.length}</div>
+              <div className="text-2xl font-bold text-accent-400">{products.length}</div>
               <div className="text-primary-400 text-sm">Ürün</div>
             </div>
             <div className="text-center glass-effect p-4 rounded-lg border border-primary-700">
@@ -361,13 +319,27 @@ export default function CategoryPage() {
             </div>
           </div>
 
+          {/* Loading State */}
+          {loading && (
+            <div className="text-center py-12">
+              <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent-500"></div>
+              <p className="mt-4 text-primary-400">Ürünler yükleniyor...</p>
+            </div>
+          )}
+
           {/* Products Grid/List */}
-          <div className={`${
-            viewMode === 'grid'
-              ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
-              : 'space-y-4'
-          }`}>
-            {sampleProducts.map((product) => (
+          {!loading && (
+            <div className={`${
+              viewMode === 'grid'
+                ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+                : 'space-y-4'
+            }`}>
+              {products.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-primary-400 text-lg">Bu kategoride henüz ürün bulunmuyor.</p>
+                </div>
+              ) : (
+                products.map((product) => (
               <div
                 key={product.id}
                 className={`glass-effect rounded-xl overflow-hidden group hover-glow transition-all duration-300 border border-primary-700 hover:border-accent-500 ${
@@ -441,15 +413,10 @@ export default function CategoryPage() {
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Load More */}
-          <div className="text-center mt-12">
-            <button className="border border-accent-500 text-accent-400 hover:bg-accent-500 hover:text-white px-8 py-3 rounded-xl font-semibold transition-all">
-              Daha Fazla Ürün Yükle
-            </button>
-          </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </section>
     </Layout>

@@ -157,14 +157,16 @@ function Layout({ children }) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <div className="flex items-center space-x-2">
-                  <Car className="h-8 w-8 text-accent-500" />
-                  <span className="text-2xl font-bold gradient-text">DynSteel</span>
+            <Link href="/">
+              <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="flex-shrink-0">
+                  <div className="flex items-center space-x-2">
+                    <Car className="h-8 w-8 text-accent-500" />
+                    <span className="text-2xl font-bold gradient-text">DynSteel</span>
+                  </div>
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex space-x-8">
@@ -202,10 +204,12 @@ function Layout({ children }) {
               </a>
 
               {/* 3D Scan Feature */}
-              <button className="flex items-center space-x-1 bg-accent-600 hover:bg-accent-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all hover-glow">
-                <Scan className="h-4 w-4" />
-                <span className="hidden sm:inline">3D Tara</span>
-              </button>
+              <Link href="/3d-scan">
+                <button className="flex items-center space-x-1 bg-accent-600 hover:bg-accent-700 text-white px-3 py-2 rounded-lg text-sm font-medium transition-all hover-glow">
+                  <Scan className="h-4 w-4" />
+                  <span className="hidden sm:inline">3D Tara</span>
+                </button>
+              </Link>
 
               {/* Cart Dropdown */}
               <div className="relative" ref={cartDropdownRef}>
@@ -621,7 +625,6 @@ function Layout({ children }) {
                   <span>Kargo: PTT</span>
                 </li>
                 <li><a href="/faq" className="text-primary-400 hover:text-accent-400 transition-colors">Sık Sorulan Sorular</a></li>
-                <li><a href="/returns" className="text-primary-400 hover:text-accent-400 transition-colors">İade & Değişim</a></li>
               </ul>
             </div>
           </div>

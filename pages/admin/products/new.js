@@ -1,6 +1,6 @@
 import AdminLayout from '../../../components/AdminLayout'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import {
   ArrowLeft,
@@ -12,8 +12,6 @@ import {
   DollarSign,
   Hash,
   FileText,
-  Tag,
-  Truck,
   Eye
 } from 'lucide-react'
 
@@ -28,20 +26,10 @@ export default function NewProduct() {
     price: '',
     originalPrice: '',
     stock: '',
-    scale: '',
     sku: '',
     status: 'active',
     features: [''],
-    images: [],
-    weight: '',
-    dimensions: {
-      length: '',
-      width: '',
-      height: ''
-    },
-    seoTitle: '',
-    seoDescription: '',
-    tags: ['']
+    images: []
   })
 
   const [previewMode, setPreviewMode] = useState(false)
@@ -52,22 +40,22 @@ export default function NewProduct() {
     'Peugeot', 'Opel', 'Fiat', 'Seat', 'Skoda', 'Hyundai', 'Kia', 'Nissan'
   ]
 
-  const scales = ['1:12', '1:18', '1:24', '1:32', '1:43', '1:64', '1:87']
+
+  // URL'den kategori parametresini al
+  useEffect(() => {
+    if (router.query.category) {
+      setProduct(prev => ({
+        ...prev,
+        category: router.query.category,
+        brand: router.query.category
+      }))
+    }
+  }, [router.query.category])
 
   const handleInputChange = (field, value) => {
     setProduct(prev => ({
       ...prev,
       [field]: value
-    }))
-  }
-
-  const handleDimensionChange = (dimension, value) => {
-    setProduct(prev => ({
-      ...prev,
-      dimensions: {
-        ...prev.dimensions,
-        [dimension]: value
-      }
     }))
   }
 
@@ -92,26 +80,105 @@ export default function NewProduct() {
     }))
   }
 
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files)
-    
-    // Resimleri base64'e çevir
-    files.forEach(file => {
-      // Dosya boyutu kontrolü (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        alert(`${file.name} çok büyük! Maksimum 2MB olmalı.`)
-        return
-      }
-      
+  // Görsel optimizasyon fonksiyonu
+  const compressImage = (file, maxWidth = 1200, maxHeight = 1200, quality = 0.8) => {
+    return new Promise((resolve) => {
       const reader = new FileReader()
-      reader.onloadend = () => {
-        setProduct(prev => ({
-          ...prev,
-          images: [...prev.images, reader.result]
-        }))
+      reader.onload = (e) => {
+        const img = new Image()
+        img.onload = () => {
+          const canvas = document.createElement('canvas')
+          let width = img.width
+          let height = img.height
+
+          // Boyutları optimize et
+          if (width > maxWidth || height > maxHeight) {
+            if (width > height) {
+              height = (height * maxWidth) / width
+              width = maxWidth
+            } else {
+              width = (width * maxHeight) / height
+              height = maxHeight
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+
+          // JPEG formatında sıkıştır
+          const compressedBase64 = canvas.toDataURL('image/jpeg', quality)
+          resolve(compressedBase64)
+        }
+        img.src = e.target.result
       }
       reader.readAsDataURL(file)
     })
+  }
+
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files)
+    
+    // Resimleri optimize et ve URL'ye çevir
+    for (const file of files) {
+      // Dosya boyutu kontrolü (max 5MB - optimize edilecek)
+      if (file.size > 5 * 1024 * 1024) {
+        alert(`${file.name} çok büyük! Maksimum 5MB olmalı. Lütfen görseli küçültün veya URL kullanın.`)
+        continue
+      }
+      
+      try {
+        // Görseli optimize et
+        let compressedBase64 = await compressImage(file, 1200, 1200, 0.85)
+        
+        // Base64 boyutunu kontrol et (max 1MB base64 = ~750KB dosya)
+        let base64Size = (compressedBase64.length * 3) / 4
+        if (base64Size > 1000000) { // 1MB'dan büyükse daha fazla sıkıştır
+          compressedBase64 = await compressImage(file, 800, 800, 0.7)
+          base64Size = (compressedBase64.length * 3) / 4
+        }
+        
+        // ÖNEMLİ: TÜM görselleri (küçük olsa bile) URL'ye çevir - base64 hiç saklama!
+        // Bu sayede request body boyutu küçük kalır
+        try {
+          const uploadResponse = await fetch('/api/admin/upload-image', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ image: compressedBase64 }),
+          })
+
+          const uploadData = await uploadResponse.json()
+          
+          if (uploadData.success && uploadData.url && !uploadData.url.startsWith('data:image')) {
+            // URL başarıyla alındı - sadece URL'yi sakla
+            setProduct(prev => ({
+              ...prev,
+              images: [...prev.images, uploadData.url]
+            }))
+          } else {
+            // URL alınamadı, emoji kullan (base64 kullanma!)
+            console.warn('Görsel URL\'ye çevrilemedi, emoji kullanılıyor')
+            setProduct(prev => ({
+              ...prev,
+              images: [...prev.images, '🚗']
+            }))
+          }
+        } catch (uploadError) {
+          console.error('URL dönüştürme hatası:', uploadError)
+          // Hata durumunda emoji kullan (base64 kullanma!)
+          setProduct(prev => ({
+            ...prev,
+            images: [...prev.images, '🚗']
+          }))
+        }
+      } catch (error) {
+        console.error('Görsel optimizasyon hatası:', error)
+        alert(`${file.name} yüklenirken bir hata oluştu. Lütfen tekrar deneyin.`)
+      }
+    }
   }
 
   const handleImageUrlAdd = () => {
@@ -131,27 +198,124 @@ export default function NewProduct() {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Ürün verisini hazırla
-    const newProduct = {
-      ...product,
-      id: Date.now(), // Benzersiz ID
-      price: parseFloat(product.price) || 0,
-      originalPrice: product.originalPrice ? parseFloat(product.originalPrice) : null,
-      stock: parseInt(product.stock) || 0,
-      rating: 4.5,
-      reviews: 0,
-      inStock: parseInt(product.stock) > 0,
-      image: product.images && product.images.length > 0 ? product.images[0] : '🚗', // İlk resmi veya varsayılan emoji
-      images: product.images || [],
-      category: product.brand.toLowerCase() // Brand'i category olarak kullan
+    // Form validasyonu
+    if (!product.name || !product.name.trim()) {
+      alert('Lütfen ürün adını girin!')
+      return
+    }
+    
+    if (!product.price || parseFloat(product.price) <= 0) {
+      alert('Lütfen geçerli bir fiyat girin!')
+      return
+    }
+    
+    if (!product.category) {
+      alert('Lütfen bir kategori seçin!')
+      return
+    }
+    
+    if (!product.stock || parseInt(product.stock) < 0) {
+      alert('Lütfen geçerli bir stok miktarı girin!')
+      return
     }
     
     // Save to MongoDB via API
     try {
       setSaving(true)
+      
+      // Görselleri optimize et - base64 görselleri URL'ye çevir veya emoji'ye çevir
+      // ÖNEMLİ: TÜM base64 görselleri URL'ye çevir - hiç base64 gönderme!
+      const optimizeImages = async (images) => {
+        const optimized = []
+        
+        for (const img of images || []) {
+          // Eğer base64 görsel ise - MUTLAKA URL'ye çevir
+          if (img && img.startsWith('data:image')) {
+            // Base64 görselin boyutunu kontrol et
+            const base64Size = (img.length * 3) / 4
+            
+            // 500KB'dan büyükse direkt emoji'ye çevir (çok büyük, yükleme başarısız olabilir)
+            if (base64Size > 500000) {
+              console.warn('Görsel çok büyük, emoji kullanılıyor:', base64Size)
+              optimized.push('🚗')
+              continue
+            }
+            
+            // TÜM base64 görselleri URL'ye çevirmeyi dene (küçük olsa bile)
+            try {
+              const uploadResponse = await fetch('/api/admin/upload-image', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ image: img }),
+              })
+              
+              const uploadData = await uploadResponse.json()
+              if (uploadData.success && uploadData.url && !uploadData.url.startsWith('data:image')) {
+                optimized.push(uploadData.url)
+                continue
+              }
+            } catch (e) {
+              console.error('URL dönüştürme hatası:', e)
+            }
+            // Başarısız olursa emoji kullan (base64 kullanma!)
+            optimized.push('🚗')
+            continue
+          } else {
+            // URL veya emoji ise olduğu gibi gönder
+            optimized.push(img)
+          }
+        }
+        
+        return optimized
+      }
+      
+      const optimizedImages = await optimizeImages(product.images || [])
+      const mainImage = optimizedImages.length > 0 ? optimizedImages[0] : '🚗'
+      
+      // Request body boyutunu kontrol et
+      const requestBody = {
+        name: (product.name || '').trim(),
+        description: (product.description || '').substring(0, 2000), // Açıklamayı sınırla
+        price: parseFloat(product.price) || 0,
+        originalPrice: product.originalPrice ? parseFloat(product.originalPrice) : null,
+        category: product.category || product.brand?.toLowerCase() || '',
+        brand: product.brand || product.category || '',
+        image: mainImage,
+        images: optimizedImages,
+        stock: parseInt(product.stock) || 0,
+        sku: product.sku || '',
+        status: product.status || 'active',
+        features: product.features.filter(f => f && f.trim() !== '') || []
+      }
+      
+      // Son kontrol - name ve price boş olmamalı
+      if (!requestBody.name || requestBody.name.trim() === '') {
+        alert('Ürün adı gerekli!')
+        setSaving(false)
+        return
+      }
+      
+      if (!requestBody.price || requestBody.price <= 0) {
+        alert('Geçerli bir fiyat gerekli!')
+        setSaving(false)
+        return
+      }
+      
+      const requestBodyString = JSON.stringify(requestBody)
+      const requestSize = new Blob([requestBodyString]).size
+      
+      // 3MB'dan büyükse hata ver (güvenli limit)
+      if (requestSize > 3 * 1024 * 1024) {
+        alert('Ürün verisi çok büyük (' + (requestSize / 1024 / 1024).toFixed(2) + 'MB)! Lütfen görselleri URL olarak ekleyin veya daha küçük görseller kullanın.')
+        setSaving(false)
+        return
+      }
+      
       const response = await fetch('/api/admin/products', {
         method: 'POST',
         headers: {
@@ -161,60 +325,67 @@ export default function NewProduct() {
           name: product.name,
           description: product.description,
           price: product.price,
-          category: product.brand.toLowerCase(),
-          image: product.images && product.images.length > 0 ? product.images[0] : '🚗',
-          stock: product.stock
+          originalPrice: product.originalPrice || null,
+          category: product.category || product.brand?.toLowerCase() || '',
+          brand: product.brand || product.category || '',
+          image: mainImage,
+          images: optimizedImages,
+          stock: parseInt(product.stock) || 0,
+          sku: product.sku || '',
+          status: product.status || 'active',
+          features: product.features.filter(f => f.trim() !== '') || []
         })
       })
 
-      const data = await response.json()
-
+      // Response'u text olarak al, sonra parse et
+      const responseText = await response.text()
+      
       if (!response.ok) {
-        throw new Error(data.error || 'Ürün eklenemedi')
+        let errorMessage = 'Ürün eklenemedi'
+        
+        // Vercel body limit hatası kontrolü
+        if (responseText.includes('Body exceeded') || responseText.includes('Body excee') || responseText.includes('413') || responseText.includes('Payload')) {
+          errorMessage = 'Ürün verisi çok büyük! Lütfen görselleri URL olarak ekleyin veya daha küçük görseller kullanın. (Maksimum 4MB)'
+        } else {
+          try {
+            const errorData = JSON.parse(responseText)
+            // Hata mesajını Türkçe'ye çevir
+            if (errorData.error === 'Name and price are required') {
+              errorMessage = 'Ürün adı ve fiyat gerekli! Lütfen tüm zorunlu alanları doldurun.'
+            } else {
+              errorMessage = errorData.error || errorMessage
+            }
+          } catch (e) {
+            // JSON değilse direkt mesajı göster
+            if (responseText.length > 0 && responseText.length < 500) {
+              errorMessage = responseText
+            } else {
+              errorMessage = `Sunucu hatası: ${response.status} ${response.statusText}`
+            }
+          }
+        }
+        throw new Error(errorMessage)
       }
 
-      alert('Ürün başarıyla eklendi!')
-      router.push('/admin/products')
+      let data
+      try {
+        data = JSON.parse(responseText)
+      } catch (e) {
+        console.error('JSON parse hatası:', e, 'Response:', responseText.substring(0, 200))
+        // Eğer response JSON değilse ama başarılıysa, muhtemelen body limit hatası
+        if (responseText.includes('Body exceeded') || responseText.includes('Body excee')) {
+          throw new Error('Ürün verisi çok büyük! Lütfen görselleri URL olarak ekleyin veya daha küçük görseller kullanın.')
+        }
+        throw new Error('Sunucudan geçersiz yanıt alındı')
+      }
+
+      alert('Minyatür araba başarıyla eklendi!')
+      router.push('/products')
     } catch (error) {
       console.error('Error saving product:', error)
       alert(error.message || 'Ürün eklenirken bir hata oluştu')
     } finally {
       setSaving(false)
-    }
-  }
-
-  const handleInputChange = (field, value) => {
-    setProduct(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  // Remove old handleSave function - replaced above
-  const oldHandleSave = () => {
-    // Formu temizle
-    setProduct({
-      name: '',
-      description: '',
-      category: '',
-      brand: '',
-      price: '',
-      originalPrice: '',
-        stock: '',
-        scale: '',
-        sku: '',
-        status: 'active',
-        features: [''],
-        images: [],
-        weight: '',
-        dimensions: { length: '', width: '', height: '' },
-        seoTitle: '',
-        seoDescription: '',
-        tags: ['']
-      })
-      
-      // Ürünler sayfasına yönlendir
-      window.location.href = '/admin/products'
     }
   }
 
@@ -235,7 +406,7 @@ export default function NewProduct() {
               </button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Yeni Ürün Ekle</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Minyatür Arabaları Ekle</h1>
               <p className="text-gray-600">Koleksiyonunuza yeni bir minyatür araba ekleyin</p>
             </div>
           </div>
@@ -252,7 +423,7 @@ export default function NewProduct() {
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg flex items-center space-x-2 transition-colors"
             >
               <Save className="h-4 w-4" />
-              <span>Ürünü Kaydet</span>
+              <span>Minyatür Arabayı Kaydet</span>
             </button>
           </div>
         </div>
@@ -304,20 +475,6 @@ export default function NewProduct() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Ferrari"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ölçek</label>
-                  <select
-                    value={product.scale}
-                    onChange={(e) => handleInputChange('scale', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">Ölçek Seçin</option>
-                    {scales.map(scale => (
-                      <option key={scale} value={scale}>{scale}</option>
-                    ))}
-                  </select>
                 </div>
 
                 <div>
@@ -434,68 +591,6 @@ export default function NewProduct() {
               </button>
             </div>
 
-            {/* SEO */}
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Tag className="h-5 w-5 mr-2 text-orange-600" />
-                SEO ve Etiketler
-              </h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">SEO Başlığı</label>
-                  <input
-                    type="text"
-                    value={product.seoTitle}
-                    onChange={(e) => handleInputChange('seoTitle', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ferrari F40 Minyatür - Detaylı 1:18 Ölçek"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">SEO Açıklaması</label>
-                  <textarea
-                    value={product.seoDescription}
-                    onChange={(e) => handleInputChange('seoDescription', e.target.value)}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Ferrari F40 minyatür arabası, 1:18 ölçek, detaylı metal kasa..."
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Etiketler</label>
-                  {product.tags.map((tag, index) => (
-                    <div key={index} className="flex items-center space-x-2 mb-2">
-                      <input
-                        type="text"
-                        value={tag}
-                        onChange={(e) => handleArrayChange('tags', index, e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="ferrari, spor araba, kırmızı"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeArrayItem('tags', index)}
-                        className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                  
-                  <button
-                    type="button"
-                    onClick={() => addArrayItem('tags')}
-                    className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 mt-2"
-                  >
-                    <Plus className="h-4 w-4" />
-                    <span>Etiket Ekle</span>
-                  </button>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Yan Panel */}
@@ -552,7 +647,7 @@ export default function NewProduct() {
                     <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-400 hover:bg-blue-50 transition-colors cursor-pointer">
                       <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm font-medium text-gray-700 mb-1">Dosya Yükle</p>
-                      <p className="text-xs text-gray-500">PNG, JPG, GIF - Max 2MB</p>
+                      <p className="text-xs text-gray-500">PNG, JPG, GIF - Max 5MB (otomatik optimize edilir)</p>
                       <input
                         type="file"
                         multiple
@@ -644,53 +739,6 @@ export default function NewProduct() {
               </div>
             </div>
 
-            {/* Boyutlar */}
-            <div className="bg-white rounded-lg p-6 border border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                <Truck className="h-5 w-5 mr-2 text-indigo-600" />
-                Kargo Bilgileri
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Ağırlık (gr)</label>
-                  <input
-                    type="number"
-                    value={product.weight}
-                    onChange={(e) => handleInputChange('weight', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="250"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Boyutlar (cm)</label>
-                  <div className="grid grid-cols-3 gap-2">
-                    <input
-                      type="number"
-                      value={product.dimensions.length}
-                      onChange={(e) => handleDimensionChange('length', e.target.value)}
-                      className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="L"
-                    />
-                    <input
-                      type="number"
-                      value={product.dimensions.width}
-                      onChange={(e) => handleDimensionChange('width', e.target.value)}
-                      className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="W"
-                    />
-                    <input
-                      type="number"
-                      value={product.dimensions.height}
-                      onChange={(e) => handleDimensionChange('height', e.target.value)}
-                      className="px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder="H"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         </form>
       </div>

@@ -48,7 +48,7 @@ export default function ReturnPolicy() {
                   📞 İade ve değişim işlemleri için: <span className="text-blue-600">0545 846 35 23</span>
                 </p>
                 <p className="text-blue-800 font-medium">
-                  📧 E-posta: <span className="text-blue-600">steeldyn@gmail.com</span>
+                  📧 E-posta: <span className="text-blue-600">info@dynsteel.com</span>
                 </p>
               </div>
             </section>
@@ -100,7 +100,7 @@ export default function ReturnPolicy() {
                   <div>
                     <h3 className="font-semibold text-gray-900">İletişime Geçin</h3>
                     <p className="text-gray-700 text-sm">
-                      WhatsApp (0545 846 35 23) veya e-posta (steeldyn@gmail.com) ile iade talebinizi bildirin.
+                      WhatsApp (0545 846 35 23) veya e-posta (info@dynsteel.com) ile iade talebinizi bildirin.
                     </p>
                   </div>
                 </div>
@@ -257,7 +257,7 @@ export default function ReturnPolicy() {
                       </p>
                       <p className="text-gray-700 flex items-center">
                         <span className="text-blue-600 mr-2">📧</span>
-                        E-posta: steeldyn@gmail.com
+                        E-posta: info@dynsteel.com
                       </p>
                       <p className="text-gray-700 flex items-center">
                         <span className="text-purple-600 mr-2">🕒</span>

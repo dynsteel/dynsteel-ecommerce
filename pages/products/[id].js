@@ -26,79 +26,53 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0)
   const [addedToCart, setAddedToCart] = useState(false)
 
-  // Demo ürünler (gerçek uygulamada API'den gelecek)
-  const allProducts = [
-    {
-      id: 1,
-      name: 'Ferrari F40 Minyatür',
-      price: 899,
-      originalPrice: null,
-      image: '🏎️',
-      rating: 4.9,
-      reviews: 124,
-      category: 'sports',
-      scale: '1:18',
-      brand: 'Ferrari',
-      inStock: true,
-      stock: 15,
-      description: 'Detaylı metal kasa, açılır kapılar, premium kalite Ferrari F40 minyatür araç modeli',
-      features: ['Metal kasa', 'Açılır kapılar', 'Detaylı iç mekan', 'Gerçekçi lastikler']
-    },
-    {
-      id: 2,
-      name: 'BMW M3 E30 Minyatür',
-      price: 649,
-      originalPrice: null,
-      image: '🚗',
-      rating: 4.8,
-      reviews: 89,
-      category: 'classic',
-      scale: '1:24',
-      brand: 'BMW',
-      inStock: true,
-      stock: 23,
-      description: 'Klasik spor sedan, premium kalite BMW M3 E30 minyatür model',
-      features: ['Die-cast metal', 'Gerçekçi detaylar', 'Koleksiyonluk', 'Numara plakalı']
-    },
-    {
-      id: 3,
-      name: 'Mercedes AMG GT Minyatür',
-      price: 999,
-      originalPrice: 1299,
-      image: '🚙',
-      rating: 4.7,
-      reviews: 156,
-      category: 'luxury',
-      scale: '1:18',
-      brand: 'Mercedes',
-      inStock: true,
-      stock: 8,
-      description: 'Özel seri, numaralı sertifika ile gelen Mercedes AMG GT modeli',
-      features: ['Sınırlı üretim', 'Numaralı sertifika', 'Premium kutu', 'Özel boya']
-    },
-    {
-      id: 4,
-      name: 'Porsche 911 GT3 RS Minyatür',
-      price: 1199,
-      originalPrice: null,
-      image: '🏁',
-      rating: 4.9,
-      reviews: 203,
-      category: 'racing',
-      scale: '1:18',
-      brand: 'Porsche',
-      inStock: true,
-      stock: 12,
-      description: 'Yarış versiyonu, aerodynamik detaylara sahip Porsche 911 GT3 RS',
-      features: ['Yarış detayları', 'Spoiler', 'Racing stripes', 'Performans jantları']
-    }
-  ]
-
   useEffect(() => {
     if (id) {
-      // Gerçek uygulamada API çağrısı yapılacak
-      const foundProduct = allProducts.find(p => p.id === parseInt(id))
-      setProduct(foundProduct || null)
+      const fetchProduct = async () => {
+        try {
+          const response = await fetch(`/api/admin/products?id=${id}`)
+          const data = await response.json()
+          
+          if (response.ok && data.success && data.product) {
+            // Görseli belirle
+            let mainImage = data.product.image
+            if (!mainImage && data.product.images && data.product.images.length > 0) {
+              mainImage = data.product.images[0]
+            }
+            if (!mainImage) {
+              mainImage = '🚗'
+            }
+            
+            const formattedProduct = {
+              id: data.product.id,
+              name: data.product.name || '',
+              price: data.product.price || 0,
+              originalPrice: data.product.originalPrice || null,
+              image: mainImage,
+              images: data.product.images || (data.product.image ? [data.product.image] : []),
+              rating: 4.5,
+              reviews: 0,
+              category: data.product.category || '',
+              scale: data.product.scale || '1:18',
+              brand: data.product.brand || data.product.category || '',
+              inStock: (data.product.stock || 0) > 0,
+              stock: data.product.stock || 0,
+              description: data.product.description || '',
+              features: data.product.features || []
+            }
+            
+            setProduct(formattedProduct)
+          } else {
+            console.error('Ürün bulunamadı:', data.error)
+            setProduct(null)
+          }
+        } catch (error) {
+          console.error('Ürün yükleme hatası:', error)
+          setProduct(null)
+        }
+      }
+      
+      fetchProduct()
     }
   }, [id])
 
@@ -168,16 +142,89 @@ export default function ProductDetailPage() {
             {/* Product Images */}
             <div>
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 mb-4">
-                <div className="text-8xl text-center">{product.image}</div>
+                {(() => {
+                  // Görseli belirle
+                  let displayImage = product.image
+                  
+                  // Eğer images array'i varsa ve seçili index geçerliyse onu kullan
+                  if (product.images && product.images.length > 0 && selectedImage < product.images.length) {
+                    const selectedImg = product.images[selectedImage]
+                    if (selectedImg && selectedImg.length > 2 && (selectedImg.startsWith('data:image') || selectedImg.startsWith('http://') || selectedImg.startsWith('https://'))) {
+                      displayImage = selectedImg
+                    }
+                  }
+                  
+                  // Eğer image yoksa veya emoji ise, images array'ini kontrol et
+                  if (!displayImage || displayImage.length <= 2 || (!displayImage.startsWith('data:image') && !displayImage.startsWith('http://') && !displayImage.startsWith('https://'))) {
+                    if (product.images && product.images.length > 0) {
+                      const validImage = product.images.find(img => 
+                        img && 
+                        img.length > 2 && 
+                        (img.startsWith('data:image') || img.startsWith('http://') || img.startsWith('https://'))
+                      )
+                      if (validImage) {
+                        displayImage = validImage
+                      }
+                    }
+                  }
+                  
+                  // Eğer hala geçerli bir görsel yoksa emoji kullan
+                  if (!displayImage || displayImage.length <= 2 || (!displayImage.startsWith('data:image') && !displayImage.startsWith('http://') && !displayImage.startsWith('https://'))) {
+                    displayImage = displayImage || '🚗'
+                    return <div className="text-8xl text-center">{displayImage}</div>
+                  }
+                  
+                  // Geçerli görsel varsa göster
+                  return (
+                    <img 
+                      src={displayImage} 
+                      alt={product.name}
+                      className="w-full h-auto rounded-lg"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.target.onerror = null
+                        e.target.style.display = 'none'
+                        const fallback = document.createElement('div')
+                        fallback.className = 'text-8xl text-center'
+                        fallback.textContent = '🚗'
+                        e.target.parentElement.appendChild(fallback)
+                      }}
+                    />
+                  )
+                })()}
               </div>
+              
+              {/* Thumbnail Images */}
+              {product.images && product.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {product.images.map((img, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImage(index)}
+                      className={`bg-white rounded-lg border-2 p-2 ${
+                        selectedImage === index ? 'border-accent-500' : 'border-gray-200'
+                      }`}
+                    >
+                      {img && (img.startsWith('data:image') || img.startsWith('http')) ? (
+                        <img 
+                          src={img} 
+                          alt={`${product.name} ${index + 1}`}
+                          className="w-full h-20 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="text-2xl text-center">{img || '🚗'}</div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Product Info */}
             <div>
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                {/* Product Name & Brand */}
+                {/* Product Name */}
                 <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-1">{product.brand}</p>
                   <h1 className="text-3xl font-bold text-gray-900">{product.name}</h1>
                 </div>
 
@@ -218,7 +265,7 @@ export default function ProductDetailPage() {
                   {product.inStock ? (
                     <p className="text-green-600 text-sm mt-2">
                       <Check className="h-4 w-4 inline mr-1" />
-                      Stokta ({product.stock} adet)
+                      Stokta
                     </p>
                   ) : (
                     <p className="text-red-600 text-sm mt-2">Stokta yok</p>
@@ -319,7 +366,7 @@ export default function ProductDetailPage() {
                 </div>
 
                 {/* Features */}
-                <div className="mt-6 grid grid-cols-3 gap-4 pt-6 border-t border-gray-200">
+                <div className="mt-6 grid grid-cols-2 gap-4 pt-6 border-t border-gray-200">
                   <div className="text-center">
                     <Truck className="h-6 w-6 text-accent-500 mx-auto mb-2" />
                     <p className="text-xs text-gray-600">Ücretsiz Kargo</p>
@@ -327,10 +374,6 @@ export default function ProductDetailPage() {
                   <div className="text-center">
                     <Shield className="h-6 w-6 text-accent-500 mx-auto mb-2" />
                     <p className="text-xs text-gray-600">Güvenli Ödeme</p>
-                  </div>
-                  <div className="text-center">
-                    <RotateCcw className="h-6 w-6 text-accent-500 mx-auto mb-2" />
-                    <p className="text-xs text-gray-600">Kolay İade</p>
                   </div>
                 </div>
               </div>

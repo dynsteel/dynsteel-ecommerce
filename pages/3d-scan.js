@@ -233,7 +233,7 @@ export default function ThreeDScanPage() {
             </a>
             
             <a 
-              href="mailto:steeldyn@gmail.com?subject=3D Tarama ve Özel Parça Üretimi&body=Merhaba, 3D tarayıcı ile özel parça üretimi hakkında bilgi almak istiyorum."
+              href="mailto:info@dynsteel.com?subject=3D Tarama ve Özel Parça Üretimi&body=Merhaba, 3D tarayıcı ile özel parça üretimi hakkında bilgi almak istiyorum."
               className="bg-white text-accent-600 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-primary-50 transition-all hover:scale-105 flex items-center justify-center space-x-3"
             >
               <Mail className="h-5 w-5" />

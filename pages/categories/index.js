@@ -14,22 +14,22 @@ export default function CategoriesPage() {
   }
 
   const categories = [
-    { name: 'Mercedes', icon: '🚙', count: '180+ ürün', description: 'C, E, S Class için', slug: 'mercedes' },
-    { name: 'BMW', icon: '🏎️', count: '300+ ürün', description: '3, 5, X serisi için', slug: 'bmw' },
-    { name: 'Audi', icon: '🚗', count: '220+ ürün', description: 'A3, A4, Q5 için', slug: 'audi' },
-    { name: 'Volkswagen', icon: '🚗', count: '250+ ürün', description: 'Golf, Passat, Polo için', slug: 'volkswagen' },
-    { name: 'Ford', icon: '🚐', count: '190+ ürün', description: 'Focus, Fiesta için', slug: 'ford' },
-    { name: 'Toyota', icon: '🚗', count: '200+ ürün', description: 'Corolla, Camry için', slug: 'toyota' },
-    { name: 'Honda', icon: '🏁', count: '160+ ürün', description: 'Civic, Accord için', slug: 'honda' },
-    { name: 'Renault', icon: '🚙', count: '140+ ürün', description: 'Megane, Clio için', slug: 'renault' },
-    { name: 'Peugeot', icon: '🦁', count: '120+ ürün', description: '206, 307, 508 için', slug: 'peugeot' },
-    { name: 'Opel', icon: '⚡', count: '110+ ürün', description: 'Astra, Corsa için', slug: 'opel' },
-    { name: 'Fiat', icon: '🇮🇹', count: '95+ ürün', description: 'Punto, Bravo için', slug: 'fiat' },
-    { name: 'Seat', icon: '🔥', count: '85+ ürün', description: 'Leon, Ibiza için', slug: 'seat' },
-    { name: 'Skoda', icon: '💎', count: '90+ ürün', description: 'Octavia, Fabia için', slug: 'skoda' },
-    { name: 'Hyundai', icon: '🌟', count: '130+ ürün', description: 'i20, i30, Tucson için', slug: 'hyundai' },
-    { name: 'Kia', icon: '🚀', count: '115+ ürün', description: 'Ceed, Sportage için', slug: 'kia' },
-    { name: 'Nissan', icon: '🌊', count: '125+ ürün', description: 'Micra, Qashqai için', slug: 'nissan' }
+    { name: 'Mercedes', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/90/Mercedes-Logo.svg', slug: 'mercedes' },
+    { name: 'BMW', logo: 'https://upload.wikimedia.org/wikipedia/commons/4/44/BMW.svg', slug: 'bmw' },
+    { name: 'Audi', logo: 'https://upload.wikimedia.org/wikipedia/commons/9/92/Audi-Logo_2016.svg', slug: 'audi' },
+    { name: 'Volkswagen', logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Volkswagen_logo_2019.svg', slug: 'volkswagen' },
+    { name: 'Ford', logo: 'https://cdn.worldvectorlogo.com/logos/ford-6.svg', slug: 'ford' },
+    { name: 'Toyota', logo: 'https://cdn.worldvectorlogo.com/logos/toyota-1.svg', slug: 'toyota' },
+    { name: 'Honda', logo: 'https://cdn.worldvectorlogo.com/logos/honda-4.svg', slug: 'honda' },
+    { name: 'Renault', logo: '/logos/renault.svg', slug: 'renault' },
+    { name: 'Peugeot', logo: 'https://cdn.worldvectorlogo.com/logos/peugeot-1.svg', slug: 'peugeot' },
+    { name: 'Opel', logo: 'https://cdn.worldvectorlogo.com/logos/opel-6.svg', slug: 'opel' },
+    { name: 'Fiat', logo: 'https://cdn.worldvectorlogo.com/logos/fiat-2.svg', slug: 'fiat' },
+    { name: 'Seat', logo: 'https://cdn.worldvectorlogo.com/logos/seat-2.svg', slug: 'seat' },
+    { name: 'Skoda', logo: '/logos/skoda.svg', slug: 'skoda' },
+    { name: 'Hyundai', logo: 'https://upload.wikimedia.org/wikipedia/commons/b/b7/Hyundai_symbol.svg', slug: 'hyundai' },
+    { name: 'Kia', logo: 'https://cdn.worldvectorlogo.com/logos/kia-motors-1.svg', slug: 'kia' },
+    { name: 'Nissan', logo: 'https://cdn.worldvectorlogo.com/logos/nissan-1.svg', slug: 'nissan' }
   ]
 
   return (
@@ -92,24 +92,37 @@ export default function CategoriesPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {categories.map((category, index) => (
-              <Link key={index} href={`/categories/${category.slug}`}>
-                <div className="glass-effect p-6 rounded-xl hover-glow cursor-pointer group transition-all duration-300 border border-primary-700 hover:border-accent-500">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="text-3xl">{category.icon}</div>
-                    <div className="text-xs bg-accent-600 text-white px-2 py-1 rounded-full">
-                      {category.count}
+                <Link key={index} href={`/categories/${category.slug}`}>
+                  <div className="glass-effect p-6 rounded-xl hover-glow cursor-pointer group transition-all duration-300 border border-primary-700 hover:border-accent-500">
+                    <div className="flex items-center justify-center mb-4 h-20 bg-white rounded-lg p-3">
+                      <img 
+                        src={category.logo} 
+                        alt={category.name}
+                        className={`h-full w-full object-contain ${category.slug === 'skoda' ? 'mx-auto' : ''}`}
+                        style={{ maxHeight: '64px', maxWidth: '100%', display: 'block' }}
+                        loading="lazy"
+                        onError={(e) => {
+                          e.target.onerror = null
+                          e.target.style.display = 'none'
+                          const parent = e.target.parentElement
+                          if (!parent.querySelector('.fallback-text')) {
+                            const fallback = document.createElement('div')
+                            fallback.className = 'fallback-text text-lg font-bold text-gray-800'
+                            fallback.textContent = category.name
+                            parent.appendChild(fallback)
+                          }
+                        }}
+                      />
+                    </div>
+                    <h3 className="text-lg font-semibold text-black mb-4 group-hover:text-accent-400 transition-colors text-center">
+                      {category.name}
+                    </h3>
+                    <div className="flex items-center justify-center">
+                      <span className="text-accent-400 text-sm font-medium">Ürünleri Gör</span>
+                      <ArrowRight className="h-4 w-4 text-accent-400 ml-2 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-black mb-2 group-hover:text-accent-400 transition-colors">
-                    {category.name}
-                  </h3>
-                  <p className="text-primary-400 text-sm mb-4">{category.description}</p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-accent-400 text-sm font-medium">Ürünleri Gör</span>
-                    <ArrowRight className="h-4 w-4 text-accent-400 group-hover:translate-x-1 transition-transform" />
-                  </div>
-                </div>
-              </Link>
+                </Link>
             ))}
           </div>
         </div>

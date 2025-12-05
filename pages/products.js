@@ -55,108 +55,73 @@ export default function ProductsPage() {
 
   // Ürünleri yükle
   useEffect(() => {
-    // localStorage'dan admin tarafından eklenen ürünleri al
-    let adminProducts = []
-    if (typeof window !== 'undefined') {
-      adminProducts = JSON.parse(localStorage.getItem('adminProducts') || '[]')
-    }
-
-    const initialProducts = [
-      {
-        id: 1,
-        name: 'Ferrari F40 Minyatür',
-        price: 899,
-        originalPrice: null,
-        image: '🏎️',
-        rating: 4.9,
-        reviews: 124,
-        category: 'sports',
-        scale: '1:18',
-        brand: 'Ferrari',
-        inStock: true,
-        description: 'Detaylı metal kasa, açılır kapılar, premium kalite',
-        features: ['Metal kasa', 'Açılır kapılar', 'Detaylı iç mekan']
-      },
-      {
-        id: 2,
-        name: 'BMW M3 E30 Minyatür',
-        price: 649,
-        originalPrice: null,
-        image: '🚗',
-        rating: 4.8,
-        reviews: 89,
-        category: 'classic',
-        scale: '1:24',
-        brand: 'BMW',
-        inStock: true,
-        description: 'Klasik spor sedan, premium kalite',
-        features: ['Die-cast metal', 'Gerçekçi detaylar', 'Koleksiyonluk']
-      },
-      {
-        id: 3,
-        name: 'Mercedes AMG GT Minyatür',
-        price: 999,
-        originalPrice: 1299,
-        image: '🚙',
-        rating: 4.7,
-        reviews: 156,
-        category: 'luxury',
-        scale: '1:18',
-        brand: 'Mercedes',
-        inStock: true,
-        description: 'Özel seri, numaralı sertifika',
-        features: ['Sınırlı üretim', 'Numaralı sertifika', 'Premium kutu']
-      },
-      {
-        id: 4,
-        name: 'Porsche 911 GT3 RS Minyatür',
-        price: 1199,
-        originalPrice: null,
-        image: '🏁',
-        rating: 4.9,
-        reviews: 203,
-        category: 'racing',
-        scale: '1:18',
-        brand: 'Porsche',
-        inStock: true,
-        description: 'Yarış versiyonu, aerodynamik detaylar',
-        features: ['Yarış detayları', 'Spoiler', 'Racing stripes']
-      },
-      {
-        id: 5,
-        name: 'Lamborghini Aventador Minyatür',
-        price: 1399,
-        originalPrice: null,
-        image: '⚡',
-        rating: 4.8,
-        reviews: 178,
-        category: 'sports',
-        scale: '1:18',
-        brand: 'Lamborghini',
-        inStock: false,
-        description: 'Süper spor araba, açılır kapılar',
-        features: ['Scissor doors', 'LED ışıklar', 'V12 motor detayı']
-      },
-      {
-        id: 6,
-        name: 'Audi R8 V10 Minyatür',
-        price: 849,
-        originalPrice: 1049,
-        image: '🔥',
-        rating: 4.6,
-        reviews: 134,
-        category: 'sports',
-        scale: '1:24',
-        brand: 'Audi',
-        inStock: true,
-        description: 'Mid-engine spor araba, detaylı motor bölümü',
-        features: ['V10 motor', 'Karbon fiber detaylar', 'LED farlar']
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('/api/admin/products')
+        const data = await response.json()
+        
+        if (response.ok && data.success && data.products) {
+          // MongoDB'den gelen ürünleri formatla
+          const formattedProducts = data.products.map(product => {
+            // Görseli belirle - önce image, sonra images array'inin ilk elemanı
+            let mainImage = product.image
+            
+            // Eğer image boş veya emoji ise, images array'ini kontrol et
+            if (!mainImage || mainImage.length <= 2 || (!mainImage.startsWith('data:image') && !mainImage.startsWith('http'))) {
+              if (product.images && product.images.length > 0) {
+                // İlk geçerli görseli bul
+                const validImage = product.images.find(img => 
+                  img && 
+                  img.length > 2 && 
+                  (img.startsWith('data:image') || img.startsWith('http://') || img.startsWith('https://'))
+                )
+                if (validImage) {
+                  mainImage = validImage
+                } else if (product.images[0]) {
+                  mainImage = product.images[0]
+                }
+              }
+            }
+            
+            // Eğer hala geçerli bir görsel yoksa emoji kullan
+            if (!mainImage || (mainImage.length <= 2 && !mainImage.startsWith('data:image') && !mainImage.startsWith('http'))) {
+              mainImage = '🚗'
+            }
+            
+            return {
+              id: product.id,
+              name: product.name || '',
+              price: product.price || 0,
+              originalPrice: product.originalPrice || null,
+              image: mainImage,
+              images: product.images || (product.image && product.image.length > 2 ? [product.image] : []),
+              rating: 4.5,
+              reviews: 0,
+              category: product.category || 'sports',
+              scale: product.scale || '1:18',
+              brand: product.brand || product.category || '',
+              inStock: (product.stock || 0) > 0,
+              description: product.description || '',
+              features: product.features || [],
+              stock: product.stock || 0,
+              status: product.status || 'active'
+            }
+          })
+          
+          setProducts(formattedProducts)
+        } else {
+          console.error('Ürünler yüklenemedi:', data.error)
+          // Hata durumunda boş array
+          setProducts([])
+        }
+      } catch (error) {
+        console.error('Ürün yükleme hatası:', error)
+        // Hata durumunda boş array
+        setProducts([])
       }
-    ]
+    }
     
-    // Admin tarafından eklenen ürünleri ve varsayılan ürünleri birleştir
-    const allProducts = [...initialProducts, ...adminProducts]
-    setProducts(allProducts)
+    fetchProducts()
   }, [])
 
   const handleAddToCart = useCallback((product) => {
@@ -328,21 +293,6 @@ export default function ProductsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Ana Filtre Satırı */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center space-y-4 md:space-y-0 mb-6">
-            <div className="flex flex-wrap gap-2">
-              {categories.map(category => (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                    selectedCategory === category.id
-                      ? 'bg-accent-600 text-white'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-                >
-                  {category.name}
-                </button>
-              ))}
-            </div>
 
             <div className="flex items-center space-x-4">
               <select
@@ -497,115 +447,118 @@ export default function ProductsPage() {
                   viewMode === 'list' ? 'flex' : ''
                 }`}
               >
-                <div className={`bg-gradient-to-br from-primary-700 to-primary-800 flex items-center justify-center relative ${
-                  viewMode === 'list' ? 'w-48 h-32' : 'h-48'
-                }`}>
-                  <div className="text-6xl">{product.image}</div>
-                  
-                  {/* Hover Overlay */}
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-4">
-                    <Link href={`/products/${product.id}`}>
-                      <button className="p-2 bg-white/20 rounded-full hover:bg-white/30 transition-colors" title="Detayları Gör">
-                        <Eye className="h-4 w-4 text-white" />
-                      </button>
-                    </Link>
-                    <button 
-                      onClick={() => {
-                        if (isFavorite(product.id)) {
-                          removeFromFavorites(product.id)
-                        } else {
-                          addToFavorites(product)
+                <Link href={`/products/${product.id}`} className="block">
+                  <div className={`bg-white flex items-center justify-center relative overflow-hidden ${
+                    viewMode === 'list' ? 'w-48 h-48' : 'h-64'
+                  }`}>
+                    {(() => {
+                      // Görseli belirle - önce image, sonra images array'inin ilk elemanı
+                      let mainImage = product.image
+                      
+                      // Eğer image yoksa veya emoji ise, images array'ini kontrol et
+                      if (!mainImage || mainImage.length <= 2 || (!mainImage.startsWith('data:image') && !mainImage.startsWith('http'))) {
+                        if (product.images && product.images.length > 0) {
+                          // images array'inden geçerli bir görsel bul
+                          const validImage = product.images.find(img => 
+                            img && 
+                            img.length > 2 && 
+                            (img.startsWith('data:image') || img.startsWith('http://') || img.startsWith('https://'))
+                          )
+                          if (validImage) {
+                            mainImage = validImage
+                          }
                         }
-                      }}
-                      className={`p-2 rounded-full transition-colors ${
-                        isFavorite(product.id)
-                          ? 'bg-red-500/80 hover:bg-red-600/80'
-                          : 'bg-white/20 hover:bg-white/30'
-                      }`}
-                      title={isFavorite(product.id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
-                    >
-                      <Heart className={`h-4 w-4 text-white ${isFavorite(product.id) ? 'fill-current' : ''}`} />
-                    </button>
-                    {/* Admin Butonları */}
-                    {isAdminMode && (
-                      <>
-                        <Link href={`/admin/products/edit/${product.id}`}>
-                          <button className="p-2 bg-blue-500/80 rounded-full hover:bg-blue-600/80 transition-colors" title="Düzenle">
-                            <Edit className="h-4 w-4 text-white" />
-                          </button>
-                        </Link>
+                      }
+                      
+                      // Eğer hala geçerli bir görsel yoksa emoji kullan
+                      if (!mainImage || mainImage.length <= 2 || (!mainImage.startsWith('data:image') && !mainImage.startsWith('http://') && !mainImage.startsWith('https://'))) {
+                        mainImage = mainImage || '🚗'
+                        return (
+                          <div className="text-6xl w-full h-full flex items-center justify-center bg-gray-100">
+                            {mainImage}
+                          </div>
+                        )
+                      }
+                      
+                      // Geçerli görsel varsa göster
+                      return (
+                        <img 
+                          src={mainImage} 
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.onerror = null
+                            e.target.style.display = 'none'
+                            const fallback = document.createElement('div')
+                            fallback.className = 'text-6xl w-full h-full flex items-center justify-center bg-gray-100'
+                            fallback.textContent = '🚗'
+                            e.target.parentElement.appendChild(fallback)
+                          }}
+                        />
+                      )
+                    })()}
+                    
+                    {/* Stok Badge */}
+                    <div className="absolute top-2 left-2">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        product.inStock
+                          ? 'bg-green-600 text-white'
+                          : 'bg-red-600 text-white'
+                      }`}>
+                        {product.inStock ? 'Stokta' : 'Tükendi'}
+                      </span>
+                    </div>
+                    
+                    {/* Hover Overlay */}
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all flex items-center justify-center">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex items-center space-x-2">
                         <button 
-                          onClick={() => handleDeleteProduct(product.id)}
-                          className="p-2 bg-red-500/80 rounded-full hover:bg-red-600/80 transition-colors"
-                          title="Sil"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            if (isFavorite(product.id)) {
+                              removeFromFavorites(product.id)
+                            } else {
+                              addToFavorites(product)
+                            }
+                          }}
+                          className={`p-2 rounded-full transition-colors ${
+                            isFavorite(product.id)
+                              ? 'bg-red-500/90 hover:bg-red-600/90'
+                              : 'bg-white/90 hover:bg-white text-gray-800'
+                          }`}
+                          title={isFavorite(product.id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
                         >
-                          <Trash2 className="h-4 w-4 text-white" />
+                          <Heart className={`h-5 w-5 ${isFavorite(product.id) ? 'fill-current text-white' : ''}`} />
                         </button>
-                      </>
-                    )}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </Link>
                 
-                <div className={`p-6 ${viewMode === 'list' ? 'flex-1' : ''}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className={`text-xs px-2 py-1 rounded-full ${
-                      product.inStock
-                        ? 'bg-green-600 text-white'
-                        : 'bg-red-600 text-white'
-                    }`}>
-                      {product.inStock ? 'Stokta' : 'Tükendi'}
-                    </span>
-                    <span className="text-xs text-primary-400">{product.scale}</span>
-                  </div>
-                  
+                <div className={`p-4 ${viewMode === 'list' ? 'flex-1' : ''}`}>
                   <Link href={`/products/${product.id}`}>
-                    <h3 className="text-xl font-semibold text-black mb-2 group-hover:text-accent-400 transition-colors cursor-pointer">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2 group-hover:text-accent-600 transition-colors cursor-pointer line-clamp-2">
                       {product.name}
                     </h3>
                   </Link>
                   
-                  <p className="text-primary-400 text-sm mb-3">{product.description}</p>
-                  
-                  {/* Features */}
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {product.features.slice(0, 2).map((feature, index) => (
-                      <span key={index} className="text-xs bg-primary-700 text-primary-200 px-2 py-1 rounded">
-                        {feature}
-                      </span>
-                    ))}
-                  </div>
-                  
-                  <div className="flex items-center mb-4">
-                    <div className="flex items-center">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-4 w-4 ${
-                            i < Math.floor(product.rating)
-                              ? 'text-yellow-400 fill-current'
-                              : 'text-primary-600'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-sm text-primary-400 ml-2">
-                      {product.rating} ({product.reviews} değerlendirme)
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mt-3">
                     <div>
                       {product.originalPrice && (
-                        <span className="text-sm text-gray-400 line-through">₺{product.originalPrice}</span>
+                        <span className="text-sm text-gray-400 line-through block">₺{product.originalPrice}</span>
                       )}
-                      <div className="text-2xl font-bold text-accent-600">₺{product.price}</div>
+                      <div className="text-xl font-bold text-accent-600">₺{product.price}</div>
                     </div>
                     
                     {!isAdminMode && (
                       <button
-                        onClick={() => handleAddToCart(product)}
+                        onClick={(e) => {
+                          e.preventDefault()
+                          handleAddToCart(product)
+                        }}
                         disabled={!product.inStock}
-                        className={`flex items-center space-x-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        className={`flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                           !product.inStock
                             ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                             : addedItems.has(product.id)
@@ -621,7 +574,7 @@ export default function ProductsPage() {
                         ) : (
                           <>
                             <ShoppingCart className="h-4 w-4" />
-                            <span>{product.inStock ? 'Sepete Ekle' : 'Tükendi'}</span>
+                            <span>{product.inStock ? 'Sepete' : 'Tükendi'}</span>
                           </>
                         )}
                       </button>

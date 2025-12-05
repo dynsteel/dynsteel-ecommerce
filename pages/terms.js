@@ -57,7 +57,7 @@ export default function TermsOfService() {
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Şirket Bilgileri</h2>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <p className="font-semibold text-gray-900 mb-2">DynSteel Ticaret Limited Şirketi</p>
-                <p className="text-gray-700">E-posta: steeldyn@gmail.com</p>
+                <p className="text-gray-700">E-posta: info@dynsteel.com</p>
                 <p className="text-gray-700">Telefon: 0545 846 35 23</p>
                 <p className="text-gray-700">WhatsApp: +90 545 846 35 23</p>
                 <p className="text-gray-700">Faaliyet Alanı: Minyatür araba modelleri ve modifiye parça satışı</p>
@@ -308,7 +308,7 @@ export default function TermsOfService() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <p className="font-semibold text-gray-900">E-posta:</p>
-                    <p className="text-blue-600">steeldyn@gmail.com</p>
+                    <p className="text-blue-600">info@dynsteel.com</p>
                   </div>
                   <div>
                     <p className="font-semibold text-gray-900">WhatsApp:</p>

@@ -385,7 +385,7 @@ export default function ShippingInfo() {
                   <div className="text-center">
                     <div className="text-2xl mb-2">📧</div>
                     <p className="font-semibold">E-posta</p>
-                    <p className="text-blue-600 font-bold">steeldyn@gmail.com</p>
+                    <p className="text-blue-600 font-bold">info@dynsteel.com</p>
                   </div>
                 </div>
               </div>

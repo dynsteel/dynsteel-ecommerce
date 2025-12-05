@@ -4,8 +4,8 @@
   "description": "Premium minyatür araba koleksiyonları ve özel 3D üretim hizmetleri",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#dc2626",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
   "orientation": "portrait-primary",
   "scope": "/",
   "icons": [
